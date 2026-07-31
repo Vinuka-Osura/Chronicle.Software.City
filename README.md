@@ -15,7 +15,9 @@ is what makes it a product rather than a page.
 
 ## Where this is
 
-**Phase 1.** The contract is vendored, typed and enforced. Nothing renders yet.
+**Phase 2.** The engine is finished and tested. It knows what exists at any instant, and
+where everything stands. Nothing renders yet — that is phase 3, and it is the first phase
+with a picture.
 
 Build order and what "done" means for each step: [docs/phases.md](docs/phases.md).
 Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
@@ -24,8 +26,8 @@ Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
 |---|---|---|
 | 0 | Foundations | **done** |
 | 1 | The contract — generated types, validator, fixtures | **done** |
-| 2 | The engine — `worldAt`, `layout`, no graphics at all | next |
-| 3 | Flat renderer and the timeline scrubber | |
+| 2 | The engine — `worldAt`, `layout`, no graphics at all | **done** |
+| 3 | Flat renderer and the timeline scrubber | next |
 | 4 | The city in three dimensions | |
 | 5 | Time made visible — construction, playback | |
 | 6 | The package and the demo | |

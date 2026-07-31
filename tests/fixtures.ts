@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { formatProblems, parseCareerGraph } from "@contract";
+import { compileGraph } from "@engine";
+import type { CompileOptions, CompiledGraph } from "@engine";
 
 export const FixtureNames = ["empty", "small", "full", "awkward"] as const;
 
@@ -19,6 +22,19 @@ export function fixturePath(name: FixtureName): string {
  */
 export function loadFixture(name: FixtureName): unknown {
   return JSON.parse(readFileSync(fixturePath(name), "utf8"));
+}
+
+/**
+ * A fixture taken all the way through the boundary: validated, then compiled. Tests that
+ * skipped the validator would be asserting against documents nobody had established were
+ * legal.
+ */
+export function compiledFixture(name: FixtureName, options: CompileOptions = {}): CompiledGraph {
+  const result = parseCareerGraph(loadFixture(name));
+  if (!result.ok) {
+    throw new Error(`${name}.json was refused by the validator:\n${formatProblems(result.problems)}`);
+  }
+  return compileGraph(result.graph, options);
 }
 
 export function loadSchema(): unknown {

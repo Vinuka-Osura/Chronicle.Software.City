@@ -33,9 +33,13 @@
     // in the import line while you are typing it. The lint rule resolves through these.
     "baseUrl": ".",
     "paths": {
+      "@contract": ["src/contract/index.ts"],
       "@contract/*": ["src/contract/*"],
+      "@engine": ["src/engine/index.ts"],
       "@engine/*": ["src/engine/*"],
+      "@render": ["src/render/index.ts"],
       "@render/*": ["src/render/*"],
+      "@react": ["src/react/index.ts"],
       "@react/*": ["src/react/*"]
     }
   },
