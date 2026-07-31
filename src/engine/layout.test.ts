@@ -112,19 +112,41 @@ describe("the entities the contract lets stand alone", () => {
 describe("districts", () => {
   const result = layout(compiledFixture("full"));
 
-  it("do not overlap one another", () => {
+  it("do not overlap one another, and there is a street between them", () => {
+    // Tested as rectangles, because they are rectangles. The circumscribing circles of two
+    // diagonal neighbours overlap while the blocks themselves are nowhere near each other,
+    // so a radius test here would pass on a city that looked fine and fail on a bigger one.
     const areas = [...result.districts.values()];
 
     for (const [index, area] of areas.entries()) {
       for (const other of areas.slice(index + 1)) {
-        expect(distance(area, other)).toBeGreaterThanOrEqual(area.radius + other.radius);
+        const gapX = Math.abs(area.x - other.x) - (area.halfWidth + other.halfWidth);
+        const gapZ = Math.abs(area.z - other.z) - (area.halfDepth + other.halfDepth);
+
+        // Separated on at least one axis, which is what "not overlapping" means for boxes.
+        expect(Math.max(gapX, gapZ)).toBeGreaterThan(0);
       }
     }
   });
 
   it("keep clear of the civic axis, so landmarks are not standing in a skills district", () => {
     for (const area of result.districts.values()) {
-      expect(Math.abs(area.z)).toBeGreaterThan(area.radius);
+      expect(Math.abs(area.z) - area.halfDepth).toBeGreaterThan(0);
+    }
+  });
+
+  it("are packed tightly enough to read as a city rather than a scattering", () => {
+    // A career has a few dozen things in it. Spread over a metropolis-sized plane that is
+    // a handful of objects in a lot of empty ground, and no camera angle rescues it.
+    const areas = [...result.districts.values()];
+    if (areas.length < 2) return;
+
+    for (const area of areas) {
+      const nearest = Math.min(
+        ...areas.filter((other) => other !== area).map((other) => distance(area, other)),
+      );
+      // Never further apart than a block and a couple of streets.
+      expect(nearest).toBeLessThan(area.halfWidth * 2 + 40);
     }
   });
 
@@ -139,7 +161,8 @@ describe("districts", () => {
       const plot = city.plots.get(entity.id);
       if (area === undefined || plot === undefined) continue;
 
-      expect(distance(plot, area)).toBeLessThanOrEqual(area.radius);
+      expect(Math.abs(plot.x - area.x)).toBeLessThanOrEqual(area.halfWidth);
+      expect(Math.abs(plot.z - area.z)).toBeLessThanOrEqual(area.halfDepth);
     }
   });
 });

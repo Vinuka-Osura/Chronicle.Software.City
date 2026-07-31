@@ -4,8 +4,10 @@ import {
   boundsCircle,
   buildingBox,
   buildingHeight,
+  buildingShape,
   cameraFrame,
   districtHue,
+  hasPodium,
   landmarkHeight,
   maxPolarAngle,
 } from "./city-geometry";
@@ -80,17 +82,18 @@ describe("height means something", () => {
 });
 
 describe("the camera cannot get under the ground", () => {
-  it("stops just short of the horizon while there is nothing down there", () => {
+  it("stops just short of the horizon, always", () => {
     // Not a right angle: exactly ninety degrees puts the camera in the ground plane and it
     // z-fights, which looks worse than the thing being prevented.
-    expect(maxPolarAngle(false)).toBeLessThan(Math.PI / 2);
-    expect(maxPolarAngle(false)).toBeGreaterThan(Math.PI / 2 - 0.1);
+    expect(maxPolarAngle()).toBeLessThan(Math.PI / 2);
+    expect(maxPolarAngle()).toBeGreaterThan(Math.PI / 2 - 0.1);
   });
 
-  it("lets the camera go below once there is an underground layer to see", () => {
-    // The constraint lifts because the data says it can, not because somebody remembered
-    // to come back and find this line when the layer shipped.
-    expect(maxPolarAngle(true)).toBeGreaterThan(Math.PI / 2);
+  it("has no way to be talked into going below", () => {
+    // There is nothing under the map and there is not going to be. An underground layer
+    // was considered and dropped: a career is a surface thing, and the layer would have
+    // been a second world to build and explain for no gain anybody asked for.
+    expect(maxPolarAngle.length).toBe(0);
   });
 });
 
@@ -109,11 +112,24 @@ describe("the opening shot", () => {
     expect(Math.hypot(position[0], position[2])).toBeGreaterThan(position[1] * 0.5);
   });
 
-  it("frames the whole city rather than starting inside it", () => {
+  it("starts close enough for the city to fill the view", () => {
+    // The first version framed the whole plane from high up and far back, which shows a
+    // map rather than a city: at that distance a career's worth of buildings is a
+    // scattering of specks.
     const { position, target } = cameraFrame(bounds);
     const distance = Math.hypot(position[0] - target[0], position[1], position[2] - target[2]);
+    const radius = boundsCircle(bounds).radius;
 
-    expect(distance).toBeGreaterThan(boundsCircle(bounds).radius);
+    expect(distance).toBeGreaterThan(radius * 0.8);
+    expect(distance).toBeLessThan(radius * 1.6);
+  });
+
+  it("looks along the skyline rather than down on a floor plan", () => {
+    const { position } = cameraFrame(bounds);
+    const ground = Math.hypot(position[0], position[2]);
+
+    // Height well under the ground distance: a high angle flattens a skyline.
+    expect(position[1]).toBeLessThan(ground);
   });
 
   it("cannot zoom out until the city is a dot, nor in through the floor", () => {
@@ -152,6 +168,57 @@ describe("district colour", () => {
 
   it("does not divide by zero on a city with no districts", () => {
     expect(Number.isFinite(districtHue(0, 0))).toBe(true);
+  });
+});
+
+describe("no two buildings are the same shape", () => {
+  it("gives a building a rectangular footprint rather than a square one", () => {
+    const shape = buildingShape(item({ id: "one" }), plot);
+
+    expect(shape.width).not.toBeCloseTo(shape.depth, 3);
+  });
+
+  it("gives two different buildings different proportions", () => {
+    // Identical boxes on a regular grid read as dominoes. A career never has enough
+    // entities for repetition to hide, so no two may match.
+    const a = buildingShape(item({ id: "one" }), plot);
+    const b = buildingShape(item({ id: "two" }), plot);
+
+    expect(a.width).not.toBeCloseTo(b.width, 3);
+    expect(a.rotation).not.toBeCloseTo(b.rotation, 3);
+  });
+
+  it("turns each building a little off the grid, but only a little", () => {
+    for (const id of ["a", "b", "c", "d", "e", "f"]) {
+      const { rotation } = buildingShape(item({ id }), plot);
+      // Enough to break the ranks, not enough to read as a mistake.
+      expect(Math.abs(rotation)).toBeLessThan(0.12);
+    }
+  });
+
+  it("is the same shape on every reload, for the same building", () => {
+    // Derived from the id, so a viewer never sees the city rearrange itself. This is not
+    // reading meaning out of an id - it does not care what the id says, only that it is
+    // the same string.
+    expect(buildingShape(item({ id: "stable" }), plot)).toEqual(
+      buildingShape(item({ id: "stable" }), plot),
+    );
+  });
+
+  it("keeps a gap between neighbours, which is what makes them separate buildings", () => {
+    for (const id of ["a", "b", "c", "d"]) {
+      const shape = buildingShape(item({ id, magnitude: 1 }), plot);
+      expect(shape.width).toBeLessThan(plot.footprint);
+      expect(shape.depth).toBeLessThan(plot.footprint);
+    }
+  });
+});
+
+describe("podiums", () => {
+  it("go on tall buildings only", () => {
+    expect(hasPodium(40)).toBe(true);
+    // A two-storey building with a podium is just a wider two-storey building.
+    expect(hasPodium(6)).toBe(false);
   });
 });
 

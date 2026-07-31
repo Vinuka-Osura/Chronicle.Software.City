@@ -67,7 +67,10 @@ export interface CityPlot extends CityPoint {
 }
 
 export interface CityArea extends CityPoint {
+  /** Circumscribing radius, for a cheap bounds test. */
   readonly radius: number;
+  readonly halfWidth: number;
+  readonly halfDepth: number;
 }
 
 export interface CityBounds {

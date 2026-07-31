@@ -305,11 +305,32 @@ holding. Target 60fps, hard floor 30fps.
 Four requirements, stated by the owner. Each is a product promise, not a preference, and
 three of them constrain the architecture rather than the styling.
 
-### It has to be worth looking at
+### It has to be worth looking at, and it has to read as a city
 
 Not photorealistic — that was never the goal and would not survive a phone. But the first
 reaction is the thing being sold, so "some boxes on a plane" fails the brief as surely as a
 wrong timeline does.
+
+Two things decide whether it reads as a city or as counters on a board, and neither is
+lighting:
+
+**It must be small and dense.** A career has a few dozen entities and never will have more
+— nobody's career is big enough to fill a metropolis. Spread across a large plane, that is
+a handful of objects in a lot of empty ground, and no camera angle rescues it. So the city
+is deliberately tight: buildings nearly touch, streets are narrow, and the whole thing fits
+in one view. The camera starts **close and low**, along the skyline rather than above a
+floor plan.
+
+**No two buildings may be the same shape.** Identical boxes on a regular grid read as
+dominoes. The fix is not more objects; it is that footprints are rectangular rather than
+square, no two share proportions, and each sits a few degrees off the grid — all derived
+from the entity id, so a building looks the same on every reload. Tall buildings stand on a
+wider podium, which gives the tower a shoulder and puts something street-sized at street
+level.
+
+And the city is laid out as **blocks and streets**: rectangular districts on a shared grid,
+buildings in rows inside them, and roads that turn right angles instead of cutting
+diagonally across everything.
 
 What buys the most reaction per frame of budget, in order: **real light** (a directional
 sun with soft shadows, plus hemisphere fill, so buildings have form), **a sky and fog**
@@ -339,17 +360,22 @@ not the same as being able to get back to it.
 Street mode is constrained to the ground plane and cannot pass through buildings. A camera
 that clips inside a tower is the moment the illusion dies.
 
-### The camera does not go below ground, unless there is something down there
+### The camera never goes below ground, and there is no underground
 
-The polar angle is clamped just above horizontal.
+The polar angle is clamped just above horizontal, unconditionally.
 
-The underground layer — sewers, water, power, fibre, the metro — is v2. Until it exists
-there is nothing beneath the map, and a camera that can drop under it shows the viewer the
-backs of polygons. That reads as a bug, because it is one.
+The concept doc proposed an underground layer — sewers, water, power, fibre, the metro,
+each standing for some category of engineering fundamentals. **It is dropped**, not
+deferred.
 
-So the clamp is **gated on whether an underground layer is present**, not hard-coded. When
-that layer ships, the constraint lifts because the data says it can, rather than because
-somebody remembered to go back and find this line.
+A career is a surface thing. The layer would have been a second world to build, populate,
+light and explain, in service of a metaphor nobody asked to see the inside of — and every
+category it would have carried is better said by a building on the surface. If something
+genuinely needs representing, it becomes a building or a road, which are already
+understood.
+
+So there is nothing beneath the map, a camera under it would show the backs of polygons,
+and the clamp has no condition to gate on.
 
 ### Everything carries a tooltip
 
@@ -417,5 +443,6 @@ page is a class of bug nobody should have to debug in someone else's application
 - One demo, on a real career — mine
 - Installed and rendering inside Chronicle at `/city`, fed by `/api/career-graph`
 
-Weather, traffic, night lighting, the metro and the underground layer are v2. None of them
+Weather, traffic, night lighting and the airport are v2; the underground layer is dropped
+outright (§7). None of them
 makes a wrong timeline right.

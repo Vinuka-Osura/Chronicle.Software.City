@@ -116,8 +116,8 @@ design.md §7.
   All generated: no external textures, nothing that fails on a strict CSP.
 - **Orbit camera** — damping, distance clamped to the layout bounds, target fixed to the
   time-invariant city centre, continuous wheel and pinch zoom.
-- **The polar angle is clamped above the horizon**, gated on whether an underground layer
-  exists. It does not yet, and a camera below an empty map shows the backs of polygons.
+- **The polar angle is clamped above the horizon**, unconditionally. There is nothing under
+  the map, and a camera below it shows the backs of polygons.
 - WebGL feature detection → the Phase 3 renderer as fallback.
 
 **Done when:** the scene rebuilds correctly when the date changes, the draw-call count is
@@ -202,10 +202,16 @@ no code change in either repository. That is the whole thesis demonstrated in on
 
 ## v2 — everything the concept doc promises and v1 does not
 
-Weather, traffic, day/night, the underground layer, the metro, the airport.
+Weather, traffic, day/night, the airport.
 
 Deferred on purpose. Each makes a good city better and a wrong one no less wrong, and none
 of them is worth a day before the timeline is right.
+
+**The underground layer is not deferred, it is dropped.** A career is a surface thing, and
+the layer would have been a second world to build, populate and explain in service of a
+metaphor nobody asked to see the inside of. Anything it would have carried is said better
+by a building or a road on the surface, which a viewer already understands. See design.md
+§7.
 
 ---
 

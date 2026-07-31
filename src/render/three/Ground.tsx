@@ -22,8 +22,8 @@ export function Ground({ bounds }: { readonly bounds: CityBounds }): JSX.Element
       position={[centreX, 0, centreZ]}
       receiveShadow
     >
-      <circleGeometry args={[Math.max(radius * 3, 200), 64]} />
-      <meshStandardMaterial color="#8d9384" roughness={1} metalness={0} />
+      <circleGeometry args={[Math.max(radius * 4, 240), 64]} />
+      <meshStandardMaterial color="#6f7466" roughness={1} metalness={0} />
     </mesh>
   );
 }
@@ -50,10 +50,12 @@ export function Districts({ model }: { readonly model: CityModel }): JSX.Element
             position={[area.x, 0.02, area.z]}
             receiveShadow
           >
-            <circleGeometry args={[area.radius, 48]} />
+            {/* A block, not a disc. Cities are rectangular, and a round district reads as
+                a plot marker on a map rather than as ground somebody built on. */}
+            <planeGeometry args={[area.halfWidth * 2, area.halfDepth * 2]} />
             <meshStandardMaterial
-              color={`hsl(${String(Math.round(hue * 360))}, 18%, 46%)`}
-              roughness={0.95}
+              color={`hsl(${String(Math.round(hue * 360))}, 12%, 34%)`}
+              roughness={0.98}
               metalness={0}
               side={DoubleSide}
             />

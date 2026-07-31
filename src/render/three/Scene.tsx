@@ -69,14 +69,9 @@ export function SceneLighting({
 
 export interface CameraRigProps {
   readonly bounds: CityBounds;
-  /**
-   * Whether there is anything beneath the map. There is not, yet - the underground layer
-   * is v2 - so the camera stays above the horizon.
-   */
-  readonly hasUnderground?: boolean;
 }
 
-export function CameraRig({ bounds, hasUnderground = false }: CameraRigProps): JSX.Element {
+export function CameraRig({ bounds }: CameraRigProps): JSX.Element {
   const frame = useMemo(() => cameraFrame(bounds), [bounds]);
   const { camera } = useThree();
 
@@ -111,7 +106,7 @@ export function CameraRig({ bounds, hasUnderground = false }: CameraRigProps): J
       minDistance={frame.minDistance}
       maxDistance={frame.maxDistance}
       // The camera does not go below ground while there is nothing down there to see.
-      maxPolarAngle={maxPolarAngle(hasUnderground)}
+      maxPolarAngle={maxPolarAngle()}
       minPolarAngle={0.05}
       // Panning the target off into empty space is the fastest way to get lost in a scene
       // with no landmarks on the horizon.

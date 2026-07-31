@@ -10,7 +10,7 @@ import {
 } from "three";
 import { ItemPhase } from "../frame";
 import type { CityFrame, CityModel } from "../frame";
-import { buildingBox, districtHue } from "./city-geometry";
+import { PodiumHeight, buildingBox, districtHue, hasPodium } from "./city-geometry";
 import { createBuildingMaterial } from "./buildingMaterial";
 import type { CityPick } from "./picking";
 
@@ -46,6 +46,7 @@ export function Buildings({
   onPick,
 }: BuildingsProps): JSX.Element | null {
   const mesh = useRef<InstancedMesh>(null);
+  const podiums = useRef<InstancedMesh>(null);
   const decayAttribute = useRef<InstancedBufferAttribute>(null);
   const lastAt = useRef(Number.NaN);
 
@@ -126,6 +127,7 @@ export function Buildings({
         // Collapsed rather than removed: the instance keeps its slot, so nothing has to be
         // reallocated and `instanceId` still means what it meant.
         instanced.setMatrixAt(slot, hidden);
+        podiums.current?.setMatrixAt(slot, hidden);
         decay[slot] = 0;
         continue;
       }
@@ -136,12 +138,30 @@ export function Buildings({
       const box = buildingBox(item, plot, storeys);
 
       scratch.position.set(box.x, box.y, box.z);
+      scratch.rotation.set(0, box.rotation, 0);
       scratch.scale.set(box.width, Math.max(box.height, 0.001), box.depth);
       scratch.updateMatrix();
       instanced.setMatrixAt(slot, scratch.matrix);
+
+      // The shoulder a tall building stands on. Short ones do not get one, because a
+      // two-storey building with a podium is just a wider two-storey building.
+      const podiumMesh = podiums.current;
+      if (podiumMesh !== null) {
+        if (speculative || !hasPodium(box.height)) {
+          podiumMesh.setMatrixAt(slot, hidden);
+        } else {
+          const rise = Math.min(PodiumHeight, box.height * 0.4);
+          scratch.position.set(box.x, rise / 2, box.z);
+          scratch.scale.set(box.width * 1.5, rise, box.depth * 1.5);
+          scratch.updateMatrix();
+          podiumMesh.setMatrixAt(slot, scratch.matrix);
+        }
+      }
     }
+    scratch.rotation.set(0, 0, 0);
 
     instanced.instanceMatrix.needsUpdate = true;
+    if (podiums.current !== null) podiums.current.instanceMatrix.needsUpdate = true;
     if (decayAttribute.current !== null) decayAttribute.current.needsUpdate = true;
     // Raycasting an InstancedMesh tests this first, so a stale sphere is a building that is
     // plainly there and cannot be pointed at.
@@ -167,6 +187,7 @@ export function Buildings({
   if (items.length === 0) return null;
 
   return (
+    <>
     <instancedMesh
       ref={mesh}
       args={[undefined, undefined, items.length]}
@@ -195,6 +216,23 @@ export function Buildings({
         <primitive object={material} attach="material" />
       )}
     </instancedMesh>
+
+    {!speculative && (
+      <instancedMesh
+        ref={podiums}
+        args={[undefined, undefined, items.length]}
+        castShadow
+        receiveShadow
+        frustumCulled={false}
+        // Part of the building it belongs to, so pointing at it should not report a
+        // separate thing - and the tower above it is the easier target anyway.
+        raycast={() => null}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#7b7d76" roughness={0.82} metalness={0.02} />
+      </instancedMesh>
+    )}
+    </>
   );
 }
 

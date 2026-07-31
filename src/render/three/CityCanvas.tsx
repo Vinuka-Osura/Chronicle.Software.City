@@ -21,7 +21,6 @@ export interface CityCanvasProps {
   readonly model: CityModel;
   /** Mutated in place by whoever owns the clock; read every frame, never through props. */
   readonly frame: RefObject<CityFrame>;
-  readonly hasUnderground?: boolean;
   /** Overrides the auto-detected tier. A host that knows its audience knows better. */
   readonly quality?: QualitySettings | undefined;
   readonly onPick?: ((pick: CityPick | null) => void) | undefined;
@@ -34,7 +33,6 @@ export interface CityCanvasProps {
 export function CityCanvas({
   model,
   frame,
-  hasUnderground = false,
   quality,
   onPick,
   mode,
@@ -91,7 +89,7 @@ export function CityCanvas({
 
       {mode === "orbit" ? (
         <>
-          <CameraRig bounds={model.bounds} hasUnderground={hasUnderground} />
+          <CameraRig bounds={model.bounds} />
           {/* Zooming all the way in is a request to stand in the street, so it is treated
               as one rather than as a camera that has run out of room. */}
           <EnterStreetWhenClose onEnter={enterStreet} />
