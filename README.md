@@ -15,8 +15,8 @@ is what makes it a product rather than a page.
 
 ## Where this is
 
-**Phase 4.** The city is in three dimensions — sun, shadows, sky, an orbit camera you can
-zoom, and the flat renderer still there for anything without WebGL. `npm run dev`.
+**Phase 5.** Orbit the skyline, keep zooming and you end up walking the streets, and point
+at anything to find out what it is. `npm run dev`.
 
 Build order and what "done" means for each step: [docs/phases.md](docs/phases.md).
 Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
@@ -28,8 +28,8 @@ Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
 | 2 | The engine — `worldAt`, `layout`, no graphics at all | **done** |
 | 3 | Flat renderer and the timeline scrubber | **done** |
 | 4 | The city in three dimensions | **done** |
-| 5 | Moving through it — street mode, tooltips | next |
-| 6 | Time made visible — construction, playback, quality tiers | |
+| 5 | Moving through it — street mode, tooltips | **done** |
+| 6 | Time made visible — construction, playback, quality tiers | next |
 | 7 | The package and the demo | |
 | 8 | Into the portfolio | |
 
@@ -66,9 +66,11 @@ npm run dev           # the demo, on http://localhost:5173
 npm run verify        # typecheck, lint and test - all three
 ```
 
-Pick a fixture, or drop in your own career graph. Drag to orbit, scroll or pinch to zoom,
-and drag the timeline — the city builds itself as you go rather than cutting to the result.
-The "flat renderer" checkbox shows what a device without WebGL gets.
+Pick a fixture, or drop in your own career graph. Drag to orbit, scroll to zoom — keep
+zooming and you drop into street level, where WASD walks and Esc takes you back up. Point
+at anything for its details. Drag the timeline and the city builds itself as you go rather
+than cutting to the result. The "flat renderer" checkbox shows what a device without WebGL
+gets.
 
 There is no `npm run build` yet — the package build arrives in phase 7. `npm run
 build:demo` builds the demo site.

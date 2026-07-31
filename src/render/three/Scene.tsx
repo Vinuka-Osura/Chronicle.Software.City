@@ -1,7 +1,10 @@
-import { useMemo, type JSX } from "react";
+import { useEffect, useMemo, type JSX } from "react";
 import { OrbitControls, Sky } from "@react-three/drei";
+import { useThree } from "@react-three/fiber";
+import { Vector3 } from "three";
 import type { CityBounds } from "../frame";
 import { boundsCircle, cameraFrame, maxPolarAngle } from "./city-geometry";
+import { StreetExitDistance } from "./navigation";
 
 /**
  * Light, sky and camera.
@@ -68,6 +71,25 @@ export interface CameraRigProps {
 
 export function CameraRig({ bounds, hasUnderground = false }: CameraRigProps): JSX.Element {
   const frame = useMemo(() => cameraFrame(bounds), [bounds]);
+  const { camera } = useThree();
+
+  // Coming back from street mode, the camera is standing on the pavement - which is nearer
+  // the target than the distance that dropped it into street mode in the first place, so
+  // without this it would fall straight back in and the exit would look broken.
+  useEffect(() => {
+    const target = new Vector3(frame.target[0], frame.target[1], frame.target[2]);
+    const away = camera.position.clone().sub(target);
+    const distance = away.length();
+
+    if (distance >= StreetExitDistance) return;
+
+    // Kept in whatever direction the viewer was facing, and lifted, so the city rises back
+    // into view rather than cutting to a different place entirely.
+    away.setLength(StreetExitDistance);
+    away.y = Math.max(away.y, StreetExitDistance * 0.45);
+    camera.position.copy(target).add(away);
+    camera.lookAt(target);
+  }, [camera, frame]);
 
   return (
     <OrbitControls

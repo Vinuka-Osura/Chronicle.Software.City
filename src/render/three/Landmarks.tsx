@@ -1,9 +1,11 @@
 import { useMemo, useRef, type JSX, type RefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { DynamicDrawUsage, type InstancedMesh, Matrix4, Object3D } from "three";
+import type { ThreeEvent } from "@react-three/fiber";
 import { ItemPhase } from "../frame";
 import type { CityFrame, CityModel } from "../frame";
 import { landmarkHeight } from "./city-geometry";
+import type { CityPick } from "./picking";
 
 /**
  * Roles and milestones: things that happened once, at a moment, rather than capabilities
@@ -18,12 +20,13 @@ import { landmarkHeight } from "./city-geometry";
 export interface LandmarksProps {
   readonly model: CityModel;
   readonly frame: RefObject<CityFrame>;
+  readonly onPick?: ((pick: CityPick | null) => void) | undefined;
 }
 
 const scratch = new Object3D();
 const hidden = new Matrix4().makeScale(0, 0, 0);
 
-export function Landmarks({ model, frame }: LandmarksProps): JSX.Element | null {
+export function Landmarks({ model, frame, onPick }: LandmarksProps): JSX.Element | null {
   const mesh = useRef<InstancedMesh>(null);
 
   const items = useMemo(
@@ -59,6 +62,18 @@ export function Landmarks({ model, frame }: LandmarksProps): JSX.Element | null 
     instanced.computeBoundingSphere();
   });
 
+  const handlePick = (event: ThreeEvent<PointerEvent>): void => {
+    if (onPick === undefined) return;
+
+    const slot = event.instanceId;
+    const item = slot === undefined ? undefined : items[slot];
+    if (item === undefined) return;
+    if ((frame.current.phase[item.index] ?? ItemPhase.Absent) === ItemPhase.Absent) return;
+
+    event.stopPropagation();
+    onPick({ id: item.id, index: item.index, clientX: event.clientX, clientY: event.clientY });
+  };
+
   if (items.length === 0) return null;
 
   return (
@@ -68,6 +83,10 @@ export function Landmarks({ model, frame }: LandmarksProps): JSX.Element | null 
       castShadow
       receiveShadow
       frustumCulled={false}
+      onPointerMove={handlePick}
+      onPointerOut={() => {
+        onPick?.(null);
+      }}
     >
       {/* Four sides, tapered: an obelisk rather than a tower. */}
       <cylinderGeometry args={[0.22, 0.5, 1, 4]} />

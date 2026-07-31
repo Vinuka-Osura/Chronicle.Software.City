@@ -1,9 +1,11 @@
-import { useLayoutEffect, useMemo, useRef, type JSX, type RefObject } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useMemo, useRef, type JSX, type RefObject } from "react";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { Color, DynamicDrawUsage, type InstancedMesh, Matrix4, Object3D } from "three";
 import { ItemPhase } from "../frame";
-import type { CityFrame, CityItem, CityModel } from "../frame";
+import type { CityFrame, CityModel } from "../frame";
 import { buildingBox, districtHue } from "./city-geometry";
+import { createBuildingMaterial } from "./buildingMaterial";
+import type { CityPick } from "./picking";
 
 /**
  * Every building in the city, in one draw call.
@@ -21,33 +23,48 @@ export interface BuildingsProps {
   readonly model: CityModel;
   readonly frame: RefObject<CityFrame>;
   readonly speculative?: boolean;
+  readonly windows?: boolean;
+  readonly onPick?: ((pick: CityPick | null) => void) | undefined;
 }
 
 const scratch = new Object3D();
 const hidden = new Matrix4().makeScale(0, 0, 0);
 const colour = new Color();
 
-/** The instance slot for entity *n*, so a raycast's `instanceId` resolves in one read. */
-export interface InstanceIndex {
-  readonly items: readonly CityItem[];
-  readonly entityIndex: Int32Array;
-}
-
-export function useInstanceIndex(model: CityModel, speculative: boolean): InstanceIndex {
-  return useMemo(() => {
-    const items = model.items.filter(
-      (item) => item.kind === "building" && item.speculative === speculative,
-    );
-    return {
-      items,
-      entityIndex: Int32Array.from(items.map((item) => item.index)),
-    };
-  }, [model, speculative]);
-}
-
-export function Buildings({ model, frame, speculative = false }: BuildingsProps): JSX.Element | null {
+export function Buildings({
+  model,
+  frame,
+  speculative = false,
+  windows = true,
+  onPick,
+}: BuildingsProps): JSX.Element | null {
   const mesh = useRef<InstancedMesh>(null);
-  const index = useInstanceIndex(model, speculative);
+
+  /**
+   * The instance slot for each item, fixed for the session.
+   *
+   * This is what makes picking an array read: a raycast hands back an `instanceId`, and
+   * `items[instanceId]` is the thing under the pointer. It is the same stability that lets
+   * scrubbing write matrices instead of reallocating buffers - the property earns itself
+   * twice.
+   */
+  const items = useMemo(
+    () =>
+      model.items.filter((item) => item.kind === "building" && item.speculative === speculative),
+    [model, speculative],
+  );
+
+  const material = useMemo(
+    () => (speculative ? null : createBuildingMaterial({ windows })),
+    [speculative, windows],
+  );
+
+  useEffect(
+    () => () => {
+      material?.dispose();
+    },
+    [material],
+  );
 
   const districtOrder = useMemo(() => {
     const ids = [...model.districts.keys()].sort();
@@ -61,24 +78,23 @@ export function Buildings({ model, frame, speculative = false }: BuildingsProps)
 
     instanced.instanceMatrix.setUsage(DynamicDrawUsage);
 
-    for (const [slot, item] of index.items.entries()) {
-      const plot = model.plots.get(item.id);
-      const districtId = plot === undefined ? undefined : findDistrict(model, item.id);
+    for (const [slot, item] of items.entries()) {
+      const districtId = findDistrict(model, item.id);
       const hue = districtId === undefined ? 0.58 : (districtOrder.get(districtId) ?? 0.58);
 
-      colour.setHSL(hue, speculative ? 0.55 : 0.28, speculative ? 0.62 : 0.55);
+      colour.setHSL(hue, speculative ? 0.55 : 0.26, speculative ? 0.62 : 0.58);
       instanced.setColorAt(slot, colour);
     }
 
     if (instanced.instanceColor !== null) instanced.instanceColor.needsUpdate = true;
-  }, [index, model, districtOrder, speculative]);
+  }, [items, model, districtOrder, speculative]);
 
   useFrame(() => {
     const instanced = mesh.current;
     const current = frame.current;
     if (instanced === null) return;
 
-    for (const [slot, item] of index.items.entries()) {
+    for (const [slot, item] of items.entries()) {
       const plot = model.plots.get(item.id);
       const phase = current.phase[item.index] ?? ItemPhase.Absent;
 
@@ -99,26 +115,48 @@ export function Buildings({ model, frame, speculative = false }: BuildingsProps)
     }
 
     instanced.instanceMatrix.needsUpdate = true;
+    // Raycasting an InstancedMesh tests this first, so a stale sphere is a building that is
+    // plainly there and cannot be pointed at.
     instanced.computeBoundingSphere();
   });
 
-  if (index.items.length === 0) return null;
+  const handlePick = (event: ThreeEvent<PointerEvent>): void => {
+    if (onPick === undefined) return;
+
+    const slot = event.instanceId;
+    const item = slot === undefined ? undefined : items[slot];
+    if (item === undefined) return;
+
+    // A building that has not been built yet is collapsed to nothing, but a degenerate
+    // triangle can still register a hit. Left unchecked, the city has invisible walls made
+    // of buildings that do not exist yet.
+    if ((frame.current.phase[item.index] ?? ItemPhase.Absent) === ItemPhase.Absent) return;
+
+    event.stopPropagation();
+    onPick({ id: item.id, index: item.index, clientX: event.clientX, clientY: event.clientY });
+  };
+
+  if (items.length === 0) return null;
 
   return (
     <instancedMesh
       ref={mesh}
-      args={[undefined, undefined, index.items.length]}
+      args={[undefined, undefined, items.length]}
       castShadow={!speculative}
       receiveShadow={!speculative}
       frustumCulled={false}
+      onPointerMove={handlePick}
+      onPointerOut={() => {
+        onPick?.(null);
+      }}
     >
       <boxGeometry args={[1, 1, 1]} />
-      {speculative ? (
+      {material === null ? (
         // Never solid. A goal must not be mistakable for an achievement from any angle, in
         // any lighting, or by anyone who cannot tell the two colours apart.
-        <meshBasicMaterial wireframe transparent opacity={0.55} vertexColors />
+        <meshBasicMaterial wireframe transparent opacity={0.6} vertexColors />
       ) : (
-        <meshStandardMaterial roughness={0.72} metalness={0.04} vertexColors />
+        <primitive object={material} attach="material" />
       )}
     </instancedMesh>
   );

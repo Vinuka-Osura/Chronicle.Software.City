@@ -80,9 +80,9 @@ function Demo(): JSX.Element {
       <header>
         <h1>Software City</h1>
         <p className="note">
-          Phase 4. Drag to orbit, scroll or pinch to zoom, and drag the timeline to build the
-          city. The camera will not go below the ground, because there is nothing down there
-          yet.
+          Phase 5. Drag to orbit, scroll to zoom — keep zooming and you end up standing in
+          the street. Point at anything to see what it is. The camera will not go below the
+          ground, because there is nothing down there yet.
         </p>
       </header>
 
@@ -197,7 +197,7 @@ function Demo(): JSX.Element {
 
       <footer>
         <span>{meta === null ? "" : `${String(meta.count)} entities`}</span>
-        <span>drag · scroll to zoom · space to play</span>
+        <span>drag · scroll to zoom in to street level · point at anything</span>
       </footer>
     </>
   );

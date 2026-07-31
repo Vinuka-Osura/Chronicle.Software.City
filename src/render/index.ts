@@ -13,7 +13,20 @@ export type { SvgOptions } from "./svg";
 export { supportsWebGl } from "./webgl";
 
 export { CityCanvas } from "./three/CityCanvas";
-export type { CityCanvasProps } from "./three/CityCanvas";
+export type { CameraMode, CityCanvasProps } from "./three/CityCanvas";
+
+export type { CityPick } from "./three/picking";
+export {
+  EyeHeight,
+  StreetEntryDistance,
+  StreetExitDistance,
+  WalkerRadius,
+  clampPitch,
+  resolveWalk,
+  walkStep,
+} from "./three/navigation";
+export type { Ground2D, Obstacle } from "./three/navigation";
+export { createBuildingMaterial } from "./three/buildingMaterial";
 export {
   boundsCircle,
   buildingBox,

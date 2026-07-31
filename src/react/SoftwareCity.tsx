@@ -6,12 +6,13 @@ import {
   compileGraph,
   createClock,
   createWorldState,
+  dateFromInstant,
   layout,
   worldAt,
 } from "@engine";
 import type { CareerSpan, CompileOptions, TimelineClock } from "@engine";
 import { CityCanvas, renderCitySvg, supportsWebGl } from "@render";
-import type { CityFrame } from "@render";
+import type { CameraMode, CityFrame, CityPick } from "@render";
 import { toCityFrame, toCityModel } from "./model";
 
 /**
@@ -151,11 +152,123 @@ export function SoftwareCity({
     return <FlatCity className={className} state={state} onDateChange={onDateChange} />;
   }
 
+  return <SolidCity className={className} state={state} onDateChange={onDateChange} />;
+}
+
+function SolidCity({
+  className,
+  state,
+  onDateChange,
+}: {
+  readonly className: string | undefined;
+  readonly state: Ready;
+  readonly onDateChange: ((at: number) => void) | undefined;
+}): JSX.Element {
+  const [mode, setMode] = useState<CameraMode>("orbit");
+  const [pick, setPick] = useState<CityPick | null>(null);
+
+  const details = useMemo(
+    () => (pick === null ? null : describe(state, pick)),
+    [pick, state],
+  );
+
   return (
-    <div className={className}>
-      <CityCanvas model={state.model} frame={state.frame}>
+    <div className={className} style={{ position: "relative" }}>
+      <CityCanvas
+        model={state.model}
+        frame={state.frame}
+        mode={mode}
+        onModeChange={setMode}
+        onPick={setPick}
+      >
         <ClockDriver state={state} onDateChange={onDateChange} />
       </CityCanvas>
+
+      {details !== null && <Tooltip details={details} />}
+
+      {mode === "street" && (
+        <div className="software-city-hint" role="status">
+          WASD or arrows to walk · shift to run · drag to look · scroll out or Esc to leave
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface PickDetails {
+  readonly label: string;
+  readonly kind: string;
+  readonly built: string;
+  readonly upgraded: string | null;
+  readonly retired: string | null;
+  readonly speculative: boolean;
+  readonly href: string | null;
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * What a tooltip says.
+ *
+ * The renderer handed back an id and a screen position, because that is all a renderer
+ * knows. Turning that into "a capability, first used in 2024, deepened three times" needs
+ * the career, and the career lives here.
+ */
+function describe(state: Ready, pick: CityPick): PickDetails | null {
+  const entity = state.graph.byId.get(pick.id);
+  if (entity === undefined) return null;
+
+  const lastUpgrade = entity.upgraded.at(-1);
+
+  return {
+    label: entity.label,
+    kind: entity.speculative
+      ? "Planned"
+      : entity.kind === "building"
+        ? "Capability"
+        : entity.kind === "road"
+          ? "Project"
+          : entity.kind === "landmark"
+            ? "Milestone"
+            : "District",
+    built: dateFromInstant(entity.built),
+    upgraded: lastUpgrade === undefined ? null : dateFromInstant(lastUpgrade),
+    retired: entity.retired === null ? null : dateFromInstant(entity.retired),
+    speculative: entity.speculative,
+    href: entity.href,
+    x: pick.clientX,
+    y: pick.clientY,
+  };
+}
+
+function Tooltip({ details }: { readonly details: PickDetails }): JSX.Element {
+  return (
+    <div
+      className="software-city-tooltip"
+      role="tooltip"
+      style={{
+        position: "fixed",
+        // Offset from the pointer rather than under it, or the tooltip is the thing being
+        // hovered and it flickers as the pointer chases it.
+        left: details.x + 16,
+        top: details.y + 16,
+        pointerEvents: "none",
+        zIndex: 20,
+      }}
+    >
+      <strong>{details.label}</strong>
+      <span>{details.kind}</span>
+      {details.speculative ? (
+        // Said in words as well as drawn as a wireframe. Somebody reading a tooltip is
+        // exactly the person who wants to know this is a plan rather than a fact.
+        <span>Target {details.built} — not built</span>
+      ) : (
+        <>
+          <span>Built {details.built}</span>
+          {details.upgraded !== null && <span>Last deepened {details.upgraded}</span>}
+          {details.retired !== null && <span>Retired {details.retired}</span>}
+        </>
+      )}
     </div>
   );
 }

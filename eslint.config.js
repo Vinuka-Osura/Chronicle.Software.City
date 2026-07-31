@@ -96,6 +96,22 @@ export default config(
   },
 
   {
+    // THE ONE STANDING SUPPRESSION, and it is scoped to the layer that earns it.
+    //
+    // `immutability` is a React Compiler rule: it forbids mutating anything a hook
+    // returned, because the compiler may memoise around it. That is right for ordinary
+    // React and wrong for react-three-fiber, where the camera, the scene and every mesh
+    // are Three.js objects that live outside React's render model entirely. Moving a
+    // camera IS mutating it, `useFrame` runs outside render, and drei's own controls do
+    // exactly this. The alternative - copying a camera per frame to satisfy a rule about
+    // memoisation - would be slower and no safer.
+    //
+    // Scoped to src/render/three so that a genuine mutation bug anywhere else still fails.
+    files: ["src/render/three/**/*.tsx"],
+    rules: { "react-hooks/immutability": "off" },
+  },
+
+  {
     // Config files are plain JS and are not in the TypeScript project, so the
     // type-checked rules have no program to consult and would error on every one.
     files: ["**/*.js"],

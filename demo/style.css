@@ -216,3 +216,46 @@ body > .timeline,
 body > footer {
   max-width: 100%;
 }
+
+/*
+ * Tooltip and street hint.
+ *
+ * The component emits these two class names and no styles at all, so a host dresses them
+ * to match their own site. What follows is the demo's opinion, not the package's.
+ */
+.software-city-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  max-width: 22rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%), 0 8px 24px rgb(0 0 0 / 14%);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.software-city-tooltip strong {
+  font-size: 0.92rem;
+}
+
+.software-city-tooltip span {
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+}
+
+.software-city-hint {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 78%, transparent);
+  color: var(--paper);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
