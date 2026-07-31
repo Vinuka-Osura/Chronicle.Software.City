@@ -102,22 +102,55 @@ and every honesty rule in design.md §7 is already visibly true — in SVG.
 
 ## Phase 4 — The city in three dimensions
 
-R3F, static at a given date. No construction animation yet; that is Phase 5.
+R3F, static at a given date. Construction animation is Phase 6.
+
+The brief is not "boxes on a plane". A viewer's first reaction is the thing being sold, so
+looking good is a requirement of this phase rather than a later polish pass — see
+design.md §7.
 
 - One `InstancedMesh` for every building, storeys and colour as per-instance attributes.
-- Roads as one merged geometry. Districts as ground planes. Landmarks on the civic
-  boulevard. Blueprints on the survey ground, unmistakably not built.
-- **Orbit camera with constraints** — damping, polar angle clamped above ground, distance
-  clamped to layout bounds, target fixed to the time-invariant city centre.
+- Roads as one merged geometry. District ground. Landmarks on the civic boulevard.
+  Blueprints on the survey ground, unmistakably not built.
+- **Light that gives things form** — directional sun with soft shadows, hemisphere fill,
+  sky and fog. Bevelled edges, because that is the difference between a box and a building.
+  All generated: no external textures, nothing that fails on a strict CSP.
+- **Orbit camera** — damping, distance clamped to the layout bounds, target fixed to the
+  time-invariant city centre, continuous wheel and pinch zoom.
+- **The polar angle is clamped above the horizon**, gated on whether an underground layer
+  exists. It does not yet, and a camera below an empty map shows the backs of polygons.
 - WebGL feature detection → the Phase 3 renderer as fallback.
 
 **Done when:** the scene rebuilds correctly when the date changes, the draw-call count is
-in single digits on `full.json`, and the camera cannot get inside a building or under the
-ground.
+in single digits on `full.json`, the camera cannot get under the ground or inside a
+building, and somebody who has never seen it says something.
 
 ---
 
-## Phase 5 — Time made visible
+## Phase 5 — Moving through it
+
+A skyline is a picture. Walking a street is an experience, and it is where the scale of a
+district stops being abstract.
+
+- **Street mode** — eye height, on the ground plane, cannot pass through buildings. A
+  camera clipping inside a tower is the moment the illusion dies.
+- **Zooming past a threshold drops into it**, rather than hiding it behind a button nobody
+  presses. The button exists as well, because discovering a mode by accident is not the
+  same as being able to get back to it.
+- **Tooltips on everything** — label, what it is, built date, last upgrade, whether it is a
+  goal rather than an achievement, and the producer's link when there is one.
+- Picking survives instancing: a raycast returns an `instanceId`, and instance slots are
+  already equal to the stable entity index, so the lookup is an array read.
+- **An entity absent at the current instant is not pickable**, or the city has invisible
+  walls made of buildings that do not exist yet.
+- Touch: tap to pick, drag to look, pinch to zoom.
+
+**Done when:** you can walk from one district to another along a road that a real project
+put there, every visible thing answers when pointed at, and nothing that has not been built
+yet responds.
+
+---
+
+## Phase 6 — Time made visible
 
 The phase that makes it feel alive rather than correct.
 
@@ -126,6 +159,8 @@ The phase that makes it feel alive rather than correct.
 - Retired buildings weathered and unlit — **standing, never removed.**
 - Blueprints legible as intention: wireframe, survey pegs, whatever reads as unfinished.
 - The GPU written to only when something actually changed.
+- **Quality tiers, auto-selected.** A weak device gets a plainer city, never a broken one
+  and never a slideshow.
 - `prefers-reduced-motion` lands on the finished city with construction off.
 
 **Done when:** it holds 60fps on a mid-range phone scrubbing 2019 → 2035, and a still frame
@@ -133,7 +168,7 @@ mid-drag is obviously a city under construction.
 
 ---
 
-## Phase 6 — The package and the demo
+## Phase 7 — The package and the demo
 
 The point at which it stops being a project and becomes a product.
 
@@ -150,7 +185,7 @@ Nothing from this repository is imported except the package.
 
 ---
 
-## Phase 7 — Into the portfolio
+## Phase 8 — Into the portfolio
 
 **This work happens in Chronicle's repository, not this one.**
 
@@ -176,6 +211,6 @@ of them is worth a day before the timeline is right.
 
 ## Order, and what it protects
 
-Phases 1–3 are the product; 4–5 are what makes anyone look at it; 6–7 are what make it
+Phases 1–3 are the product; 4–6 are what makes anyone look at it; 7–8 are what make it
 sellable. If time runs short, **the flat renderer with a correct timeline is a shippable
 thing** and a beautiful city with a wrong chronology is not.

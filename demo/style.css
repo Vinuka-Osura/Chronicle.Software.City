@@ -86,14 +86,23 @@ footer {
 
 .stage {
   margin: 1rem 0;
-  min-height: 55vh;
+  height: 62vh;
+  overflow: hidden;
   border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.stage > div,
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .stage svg {
   display: block;
   width: 100%;
-  height: 55vh;
+  height: 100%;
 }
 
 /* The city itself. Shapes carry the meaning; colour only reinforces it. */
@@ -193,4 +202,17 @@ footer {
   margin-top: 2rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--rule);
+}
+
+.controls label.inline {
+  flex-direction: row;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+body > header,
+body > .controls,
+body > .timeline,
+body > footer {
+  max-width: 100%;
 }

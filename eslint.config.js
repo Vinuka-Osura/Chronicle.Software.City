@@ -5,6 +5,7 @@ import js from "@eslint/js";
 import { config, configs as tsConfigs } from "typescript-eslint";
 import { flatConfigs as importConfigs } from "eslint-plugin-import-x";
 import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
+import reactHooks from "eslint-plugin-react-hooks";
 
 /**
  * The layering from CLAUDE.md:
@@ -82,6 +83,16 @@ export default config(
       // policy that quietly erodes.
       "@typescript-eslint/no-non-null-assertion": "error",
     },
+  },
+
+  {
+    // Hook rules are worth their noise here: an effect with the wrong dependencies inside
+    // a render loop is a class of bug that reproduces as "it gets slower the longer you
+    // leave it open", which is close to undiagnosable from a report.
+    files: ["**/*.tsx"],
+    // `configs.flat` rather than `configs["recommended-latest"]`: the top-level ones are
+    // still eslintrc-shaped, and ESLint 10 rejects them outright rather than adapting.
+    extends: [reactHooks.configs.flat["recommended-latest"]],
   },
 
   {

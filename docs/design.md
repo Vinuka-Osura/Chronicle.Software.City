@@ -300,7 +300,82 @@ holding. Target 60fps, hard floor 30fps.
 
 ---
 
-## 7. What honesty requires of the renderer
+## 7. Camera, navigation and interaction
+
+Four requirements, stated by the owner. Each is a product promise, not a preference, and
+three of them constrain the architecture rather than the styling.
+
+### It has to be worth looking at
+
+Not photorealistic — that was never the goal and would not survive a phone. But the first
+reaction is the thing being sold, so "some boxes on a plane" fails the brief as surely as a
+wrong timeline does.
+
+What buys the most reaction per frame of budget, in order: **real light** (a directional
+sun with soft shadows, plus hemisphere fill, so buildings have form), **a sky and fog**
+(depth, and an horizon for the eye to rest on), **materials with edges** — a slight bevel
+catches light and is the difference between a box and a building — and **night lighting**
+once the day/night cycle exists.
+
+All of it self-contained: no external textures, no CDN assets, nothing that fails on a
+strict CSP. Generated geometry and procedural materials only.
+
+**Quality tiers, auto-selected**, with the expensive parts off on a phone. A viewer with a
+weak device should see a plainer city, never a broken one and never a slideshow.
+
+### You can walk the streets
+
+Two camera modes, and the transition between them is itself part of the effect:
+
+| Mode | For |
+|---|---|
+| **Orbit** | The skyline. The default, and what a recruiter sees in the first five seconds. |
+| **Street** | Walking the roads at eye height, where the scale of a district becomes real. |
+
+Zooming past a threshold drops into street mode rather than making it a separate button
+nobody presses — though the button exists too, because discovering a mode by accident is
+not the same as being able to get back to it.
+
+Street mode is constrained to the ground plane and cannot pass through buildings. A camera
+that clips inside a tower is the moment the illusion dies.
+
+### The camera does not go below ground, unless there is something down there
+
+The polar angle is clamped just above horizontal.
+
+The underground layer — sewers, water, power, fibre, the metro — is v2. Until it exists
+there is nothing beneath the map, and a camera that can drop under it shows the viewer the
+backs of polygons. That reads as a bug, because it is one.
+
+So the clamp is **gated on whether an underground layer is present**, not hard-coded. When
+that layer ships, the constraint lifts because the data says it can, rather than because
+somebody remembered to go back and find this line.
+
+### Everything carries a tooltip
+
+Hover, or tap on touch: the label, what it is, when it was built, when it was last
+upgraded, whether it is a goal rather than an achievement — and a link where the producer
+gave one.
+
+This is what turns a pretty picture into something readable. It also has to survive
+instancing: one `InstancedMesh` for every building means a raycast returns an
+`instanceId`, so **instance slots stay equal to the stable entity index** and the lookup is
+an array read. That is the same property §2 needed for cheap scrubbing, arriving a second
+time.
+
+An entity that is absent at the current instant must not be pickable, or the city has
+invisible walls made of buildings that do not exist yet.
+
+### Zoom
+
+Continuous, on wheel and pinch, clamped to the layout bounds at the far end and to street
+level at the near end. Zoom is a camera operation and never a time operation: the timeline
+zoom and the camera zoom are different controls, and conflating them is the fastest way to
+make both confusing.
+
+---
+
+## 8. What honesty requires of the renderer
 
 Product promises, not preferences. Each is testable.
 
@@ -314,7 +389,7 @@ Product promises, not preferences. Each is testable.
 
 ---
 
-## 8. Stack
+## 9. Stack
 
 | | | Why |
 |---|---|---|
@@ -331,7 +406,7 @@ page is a class of bug nobody should have to debug in someone else's application
 
 ---
 
-## 9. What "done" means for v1
+## 10. What "done" means for v1
 
 - Loads any valid career graph, including the empty one, without throwing
 - Refuses an unrecognised `version` with a message a human can act on

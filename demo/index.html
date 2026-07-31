@@ -3,65 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Software City — flat renderer</title>
+    <title>Software City</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <header>
-      <h1>Software City</h1>
-      <p class="note">
-        Phase 3. Flat, top-down, deliberately ugly. This is where the timeline is proved
-        while the renderer is still disposable — and it ships as the WebGL fallback.
-      </p>
-    </header>
-
-    <section class="controls">
-      <label>
-        Career graph
-        <select id="fixture">
-          <option value="full">full.json — a whole career</option>
-          <option value="small">small.json — a student</option>
-          <option value="awkward">awkward.json — every legal edge case</option>
-          <option value="empty">empty.json — nothing at all</option>
-        </select>
-      </label>
-
-      <label>
-        …or your own
-        <input id="file" type="file" accept="application/json,.json" />
-      </label>
-
-      <span id="subject" class="subject"></span>
-    </section>
-
-    <p id="problems" class="problems" hidden></p>
-
-    <main id="stage" class="stage"></main>
-
-    <section class="timeline">
-      <button id="play" type="button" aria-label="Play the career">▶</button>
-
-      <div class="track">
-        <input
-          id="scrub"
-          type="range"
-          min="0"
-          max="1000"
-          step="1"
-          value="1000"
-          aria-label="Scrub through the career"
-        />
-        <div id="today" class="today" hidden><span>today</span></div>
-      </div>
-
-      <output id="readout" class="readout"></output>
-    </section>
-
-    <footer>
-      <span id="counts"></span>
-      <span id="motion"></span>
-    </footer>
-
-    <script type="module" src="./main.ts"></script>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
   </body>
 </html>

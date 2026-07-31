@@ -47,6 +47,14 @@ export interface CityItem {
   readonly label: string;
   /** 0 to 1. Height for a building, width for a road. */
   readonly magnitude: number;
+  /**
+   * Stated as an intention rather than a fact.
+   *
+   * A drawing instruction, not career knowledge: it decides which mesh an item belongs to,
+   * and meshes are partitioned once rather than per frame. The frame's `blueprint` value
+   * says the same thing at an instant; this says it for the session.
+   */
+  readonly speculative: boolean;
 }
 
 export interface CityPoint {

@@ -10,6 +10,21 @@
 export { renderCitySvg } from "./svg";
 export type { SvgOptions } from "./svg";
 
+export { supportsWebGl } from "./webgl";
+
+export { CityCanvas } from "./three/CityCanvas";
+export type { CityCanvasProps } from "./three/CityCanvas";
+export {
+  boundsCircle,
+  buildingBox,
+  buildingHeight,
+  cameraFrame,
+  districtHue,
+  landmarkHeight,
+  maxPolarAngle,
+} from "./three/city-geometry";
+export type { Box, CameraFrame } from "./three/city-geometry";
+
 export { ItemPhase } from "./frame";
 export type {
   CityArea,

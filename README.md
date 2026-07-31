@@ -15,9 +15,8 @@ is what makes it a product rather than a page.
 
 ## Where this is
 
-**Phase 3.** There is a city, and a timeline that plays it. Flat and top-down —
-deliberately ugly, because this is where the chronology is proved while the renderer is
-still disposable. `npm run dev` and drag the slider.
+**Phase 4.** The city is in three dimensions — sun, shadows, sky, an orbit camera you can
+zoom, and the flat renderer still there for anything without WebGL. `npm run dev`.
 
 Build order and what "done" means for each step: [docs/phases.md](docs/phases.md).
 Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
@@ -28,10 +27,11 @@ Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
 | 1 | The contract — generated types, validator, fixtures | **done** |
 | 2 | The engine — `worldAt`, `layout`, no graphics at all | **done** |
 | 3 | Flat renderer and the timeline scrubber | **done** |
-| 4 | The city in three dimensions | next |
-| 5 | Time made visible — construction, playback | |
-| 6 | The package and the demo | |
-| 7 | Into the portfolio | |
+| 4 | The city in three dimensions | **done** |
+| 5 | Moving through it — street mode, tooltips | next |
+| 6 | Time made visible — construction, playback, quality tiers | |
+| 7 | The package and the demo | |
+| 8 | Into the portfolio | |
 
 ## The shape
 
@@ -66,10 +66,11 @@ npm run dev           # the demo, on http://localhost:5173
 npm run verify        # typecheck, lint and test - all three
 ```
 
-Pick a fixture, or drop in your own career graph. Drag the slider; the city builds itself
-as you go rather than cutting to the result.
+Pick a fixture, or drop in your own career graph. Drag to orbit, scroll or pinch to zoom,
+and drag the timeline — the city builds itself as you go rather than cutting to the result.
+The "flat renderer" checkbox shows what a device without WebGL gets.
 
-There is no `npm run build` yet — the package build arrives in phase 6. `npm run
+There is no `npm run build` yet — the package build arrives in phase 7. `npm run
 build:demo` builds the demo site.
 
 Working conventions, and the rules that are expensive to break: [CLAUDE.md](CLAUDE.md).

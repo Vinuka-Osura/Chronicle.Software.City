@@ -34,6 +34,7 @@ export function toCityModel(graph: CompiledGraph, city: Layout): CityModel {
     kind: entity.kind,
     label: entity.label,
     magnitude: entity.magnitude,
+    speculative: entity.speculative,
   }));
 
   return {
