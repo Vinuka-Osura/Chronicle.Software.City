@@ -3,7 +3,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ACESFilmicToneMapping } from "three";
 import type { CityFrame, CityModel } from "../frame";
 import { Buildings } from "./Buildings";
-import { Districts, Ground } from "./Ground";
+import { Districts } from "./Ground";
+import { Diorama } from "./Diorama";
 import { Landmarks } from "./Landmarks";
 import { Roads } from "./Roads";
 import { CameraRig, SceneLighting } from "./Scene";
@@ -88,7 +89,7 @@ export function CityCanvas({
       <fogExp2 attach="fog" args={["#c3d3e4", Math.max(0.0016, 1 / Math.max(radius * 26, 1))]} />
 
       <SceneLighting bounds={model.bounds} settings={settings} />
-      <Ground bounds={model.bounds} />
+      <Diorama model={model} props={settings.construction} />
       <Districts model={model} />
       <Roads model={model} frame={frame} />
       <Buildings model={model} frame={frame} windows={settings.windows} onPick={onPick} />

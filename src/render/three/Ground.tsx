@@ -1,7 +1,7 @@
 import { useMemo, type JSX } from "react";
 import { DoubleSide } from "three";
-import type { CityBounds, CityModel } from "../frame";
-import { boundsCircle, districtHue } from "./city-geometry";
+import type { CityModel } from "../frame";
+import { districtHue } from "./city-geometry";
 
 /**
  * The ground, and the districts drawn on it.
@@ -10,23 +10,6 @@ import { boundsCircle, districtHue } from "./city-geometry";
  * are what stop the city reading as buildings floating on nothing: they give the eye the
  * grouping that the data already knows about.
  */
-
-export function Ground({ bounds }: { readonly bounds: CityBounds }): JSX.Element {
-  const { centreX, centreZ, radius } = useMemo(() => boundsCircle(bounds), [bounds]);
-
-  return (
-    <mesh
-      // Rotated flat rather than using a plane in the XZ axis, because a receiving shadow
-      // needs a real surface normal facing the light.
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[centreX, 0, centreZ]}
-      receiveShadow
-    >
-      <circleGeometry args={[Math.max(radius * 4, 240), 64]} />
-      <meshStandardMaterial color="#6f7466" roughness={1} metalness={0} />
-    </mesh>
-  );
-}
 
 export function Districts({ model }: { readonly model: CityModel }): JSX.Element {
   const areas = useMemo(() => {

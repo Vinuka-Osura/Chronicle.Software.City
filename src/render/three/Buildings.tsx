@@ -3,27 +3,30 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import {
   Color,
   DynamicDrawUsage,
+  type BufferGeometry,
   type InstancedBufferAttribute,
   type InstancedMesh,
   Matrix4,
   Object3D,
 } from "three";
 import { ItemPhase } from "../frame";
-import type { CityFrame, CityModel } from "../frame";
+import type { CityFrame, CityItem, CityModel } from "../frame";
 import { PodiumHeight, buildingBox, districtHue, hasPodium } from "./city-geometry";
 import { createBuildingMaterial } from "./buildingMaterial";
+import { BuildingForms, buildingForm, createFormGeometry, districtFamily } from "./forms";
+import type { BuildingForm } from "./forms";
 import type { CityPick } from "./picking";
 
 /**
- * Every building in the city, in one draw call.
+ * Every building in the city, in one draw call per shape.
  *
- * One `InstancedMesh` rather than one mesh per building: a forty-skill career is forty
- * buildings before any scenery, and four hundred is a career somebody could plausibly have.
- * Colour and transform are per-instance attributes, so the count costs nothing.
+ * Instancing is what makes the count free: a forty-skill career is forty buildings before
+ * any scenery, and four hundred is a career somebody could plausibly have. Colour,
+ * transform and weathering are per-instance attributes.
  *
- * Instances are written in `useFrame` from a mutable ref rather than from props, because
- * re-rendering React sixty times a second to move some matrices is the slow way to do
- * exactly the same work.
+ * There are five shapes rather than one, and which one a building takes comes from its
+ * district and its size - never from a random number and never for looks alone. Five
+ * meshes is still five draw calls, so the variety costs essentially nothing.
  */
 
 export interface BuildingsProps {
@@ -38,6 +41,11 @@ const scratch = new Object3D();
 const hidden = new Matrix4().makeScale(0, 0, 0);
 const colour = new Color();
 
+interface FormGroup {
+  readonly form: BuildingForm;
+  readonly items: readonly CityItem[];
+}
+
 export function Buildings({
   model,
   frame,
@@ -45,28 +53,123 @@ export function Buildings({
   windows = true,
   onPick,
 }: BuildingsProps): JSX.Element | null {
+  const districtOrder = useMemo(() => {
+    const ids = [...model.districts.keys()].sort();
+    return new Map(ids.map((id, position) => [id, position]));
+  }, [model]);
+
+  /** Which district each building stands in, resolved once from its plot. */
+  const homeOf = useMemo(() => {
+    const home = new Map<string, number>();
+    for (const item of model.items) {
+      if (item.kind !== "building") continue;
+      const plot = model.plots.get(item.id);
+      if (plot === undefined) continue;
+
+      for (const [districtId, area] of model.districts) {
+        if (
+          Math.abs(plot.x - area.x) <= area.halfWidth &&
+          Math.abs(plot.z - area.z) <= area.halfDepth
+        ) {
+          home.set(item.id, districtOrder.get(districtId) ?? 0);
+          break;
+        }
+      }
+    }
+    return home;
+  }, [model, districtOrder]);
+
+  /**
+   * Buildings grouped by the shape they take.
+   *
+   * Slots stay stable within a group, which is what keeps picking an array read: a raycast
+   * hands back an `instanceId`, and `group.items[instanceId]` is the thing under the
+   * pointer.
+   */
+  const groups = useMemo<readonly FormGroup[]>(() => {
+    const buckets = new Map<BuildingForm, CityItem[]>(
+      BuildingForms.map((form) => [form, [] as CityItem[]]),
+    );
+
+    for (const item of model.items) {
+      if (item.kind !== "building" || item.speculative !== speculative) continue;
+
+      const family = districtFamily(homeOf.get(item.id) ?? 0);
+      buckets.get(buildingForm(item, family))?.push(item);
+    }
+
+    return BuildingForms.map((form) => ({ form, items: buckets.get(form) ?? [] })).filter(
+      (group) => group.items.length > 0,
+    );
+  }, [model, speculative, homeOf]);
+
+  const material = useMemo(
+    () => (speculative ? null : createBuildingMaterial({ windows })),
+    [speculative, windows],
+  );
+
+  useEffect(
+    () => () => {
+      material?.dispose();
+    },
+    [material],
+  );
+
+  const districtCount = Math.max(model.districts.size, 1);
+
+  if (groups.length === 0) return null;
+
+  return (
+    <>
+      {groups.map((group) => (
+        <FormMesh
+          key={group.form}
+          group={group}
+          model={model}
+          frame={frame}
+          speculative={speculative}
+          material={material}
+          districtCount={districtCount}
+          homeOf={homeOf}
+          onPick={onPick}
+        />
+      ))}
+    </>
+  );
+}
+
+function FormMesh({
+  group,
+  model,
+  frame,
+  speculative,
+  material,
+  districtCount,
+  homeOf,
+  onPick,
+}: {
+  readonly group: FormGroup;
+  readonly model: CityModel;
+  readonly frame: RefObject<CityFrame>;
+  readonly speculative: boolean;
+  readonly material: ReturnType<typeof createBuildingMaterial> | null;
+  readonly districtCount: number;
+  readonly homeOf: ReadonlyMap<string, number>;
+  readonly onPick: ((pick: CityPick | null) => void) | undefined;
+}): JSX.Element {
   const mesh = useRef<InstancedMesh>(null);
   const podiums = useRef<InstancedMesh>(null);
   const decayAttribute = useRef<InstancedBufferAttribute>(null);
   const lastAt = useRef(Number.NaN);
 
-  /**
-   * The instance slot for each item, fixed for the session.
-   *
-   * This is what makes picking an array read: a raycast hands back an `instanceId`, and
-   * `items[instanceId]` is the thing under the pointer. It is the same stability that lets
-   * scrubbing write matrices instead of reallocating buffers - the property earns itself
-   * twice.
-   */
-  const items = useMemo(
-    () =>
-      model.items.filter((item) => item.kind === "building" && item.speculative === speculative),
-    [model, speculative],
-  );
+  const { items } = group;
+  const geometry = useMemo<BufferGeometry>(() => createFormGeometry(group.form), [group.form]);
 
-  const material = useMemo(
-    () => (speculative ? null : createBuildingMaterial({ windows })),
-    [speculative, windows],
+  useEffect(
+    () => () => {
+      geometry.dispose();
+    },
+    [geometry],
   );
 
   /**
@@ -78,18 +181,6 @@ export function Buildings({
    */
   const decay = useMemo(() => new Float32Array(items.length), [items.length]);
 
-  useEffect(
-    () => () => {
-      material?.dispose();
-    },
-    [material],
-  );
-
-  const districtOrder = useMemo(() => {
-    const ids = [...model.districts.keys()].sort();
-    return new Map(ids.map((id, position) => [id, districtHue(position, ids.length)]));
-  }, [model]);
-
   // Colour never changes with the date, so it is written once rather than every frame.
   useLayoutEffect(() => {
     const instanced = mesh.current;
@@ -98,15 +189,13 @@ export function Buildings({
     instanced.instanceMatrix.setUsage(DynamicDrawUsage);
 
     for (const [slot, item] of items.entries()) {
-      const districtId = findDistrict(model, item.id);
-      const hue = districtId === undefined ? 0.58 : (districtOrder.get(districtId) ?? 0.58);
-
-      colour.setHSL(hue, speculative ? 0.55 : 0.26, speculative ? 0.62 : 0.58);
+      const hue = districtHue(homeOf.get(item.id) ?? 0, districtCount);
+      colour.setHSL(hue, speculative ? 0.55 : 0.24, speculative ? 0.62 : 0.58);
       instanced.setColorAt(slot, colour);
     }
 
     if (instanced.instanceColor !== null) instanced.instanceColor.needsUpdate = true;
-  }, [items, model, districtOrder, speculative]);
+  }, [items, speculative, homeOf, districtCount]);
 
   useFrame(() => {
     const instanced = mesh.current;
@@ -184,65 +273,48 @@ export function Buildings({
     onPick({ id: item.id, index: item.index, clientX: event.clientX, clientY: event.clientY });
   };
 
-  if (items.length === 0) return null;
-
   return (
     <>
-    <instancedMesh
-      ref={mesh}
-      args={[undefined, undefined, items.length]}
-      castShadow={!speculative}
-      receiveShadow={!speculative}
-      frustumCulled={false}
-      onPointerMove={handlePick}
-      onPointerOut={() => {
-        onPick?.(null);
-      }}
-    >
-      <boxGeometry args={[1, 1, 1]}>
-        {material !== null && (
-          <instancedBufferAttribute
-            ref={decayAttribute}
-            attach="attributes-aDecay"
-            args={[decay, 1]}
-          />
-        )}
-      </boxGeometry>
-      {material === null ? (
-        // Never solid. A goal must not be mistakable for an achievement from any angle, in
-        // any lighting, or by anyone who cannot tell the two colours apart.
-        <meshBasicMaterial wireframe transparent opacity={0.6} vertexColors />
-      ) : (
-        <primitive object={material} attach="material" />
-      )}
-    </instancedMesh>
-
-    {!speculative && (
       <instancedMesh
-        ref={podiums}
-        args={[undefined, undefined, items.length]}
-        castShadow
-        receiveShadow
+        ref={mesh}
+        args={[geometry, undefined, items.length]}
+        castShadow={!speculative}
+        receiveShadow={!speculative}
         frustumCulled={false}
-        // Part of the building it belongs to, so pointing at it should not report a
-        // separate thing - and the tower above it is the easier target anyway.
-        raycast={() => null}
+        onPointerMove={handlePick}
+        onPointerOut={() => {
+          onPick?.(null);
+        }}
       >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#7b7d76" roughness={0.82} metalness={0.02} />
+        {material === null ? (
+          // Never solid. A goal must not be mistakable for an achievement from any angle, in
+          // any lighting, or by anyone who cannot tell the two colours apart.
+          <meshBasicMaterial wireframe transparent opacity={0.6} vertexColors />
+        ) : (
+          <primitive object={material} attach="material" />
+        )}
+        <instancedBufferAttribute
+          ref={decayAttribute}
+          attach="geometry-attributes-aDecay"
+          args={[decay, 1]}
+        />
       </instancedMesh>
-    )}
+
+      {!speculative && (
+        <instancedMesh
+          ref={podiums}
+          args={[undefined, undefined, items.length]}
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          // Part of the building it belongs to, so pointing at it should not report a
+          // separate thing - and the tower above it is the easier target anyway.
+          raycast={() => null}
+        >
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#6f7269" roughness={0.85} metalness={0.02} />
+        </instancedMesh>
+      )}
     </>
   );
-}
-
-/** Which district area contains this plot. Cheap, and only ever run on colour setup. */
-function findDistrict(model: CityModel, id: string): string | undefined {
-  const plot = model.plots.get(id);
-  if (plot === undefined) return undefined;
-
-  for (const [districtId, area] of model.districts) {
-    if (Math.hypot(plot.x - area.x, plot.z - area.z) <= area.radius) return districtId;
-  }
-  return undefined;
 }
