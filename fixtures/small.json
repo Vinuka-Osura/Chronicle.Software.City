@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-31T06:00:00+00:00",
+  "subject": {
+    "name": "A Second-Year Student",
+    "headline": "Learning backend, one coursework project at a time",
+    "url": null
+  },
+  "entities": [
+    {
+      "id": "district:Backend",
+      "kind": "district",
+      "label": "Backend",
+      "district": null,
+      "built": "2024-09-16",
+      "upgraded": [],
+      "retired": null,
+      "magnitude": 0,
+      "connects": [],
+      "speculative": false,
+      "href": null,
+      "meta": {}
+    },
+    {
+      "id": "skill:6b1f0d2a-3c4e-4f50-8a91-2d3e4f506172",
+      "kind": "building",
+      "label": "Python",
+      "district": "district:Backend",
+      "built": "2024-09-16",
+      "upgraded": ["2025-02-10"],
+      "retired": null,
+      "magnitude": 0.5,
+      "connects": [],
+      "speculative": false,
+      "href": null,
+      "meta": {}
+    },
+    {
+      "id": "skill:7c2e1e3b-4d5f-4061-9ba2-3e4f50617283",
+      "kind": "building",
+      "label": "PostgreSQL",
+      "district": "district:Backend",
+      "built": "2024-09-16",
+      "upgraded": [],
+      "retired": null,
+      "magnitude": 0.25,
+      "connects": [],
+      "speculative": false,
+      "href": null,
+      "meta": {}
+    },
+    {
+      "id": "skill:8d3f2f4c-5e60-4172-acb3-4f5061728394",
+      "kind": "building",
+      "label": "Git",
+      "district": "district:Backend",
+      "built": "2024-09-16",
+      "upgraded": ["2025-02-10"],
+      "retired": null,
+      "magnitude": 0.5,
+      "connects": [],
+      "speculative": false,
+      "href": null,
+      "meta": {}
+    },
+    {
+      "id": "project:9e40305d-6f71-4283-bdc4-506172839405",
+      "kind": "road",
+      "label": "Coursework Records API",
+      "district": null,
+      "built": "2024-09-16",
+      "upgraded": [],
+      "retired": "2025-05-30",
+      "magnitude": 0.6,
+      "connects": [
+        "skill:6b1f0d2a-3c4e-4f50-8a91-2d3e4f506172",
+        "skill:7c2e1e3b-4d5f-4061-9ba2-3e4f50617283"
+      ],
+      "speculative": false,
+      "href": null,
+      "meta": {}
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+Creative Commons Zero v1.0 Universal (CC0 1.0)
+================================================================================
+
+THIS LICENCE APPLIES ONLY TO THE FILES IN THIS `contracts/` DIRECTORY.
+
+The rest of this repository is covered by the proprietary licence in the LICENSE
+file at the repository root, which reserves essentially all rights. These files
+are deliberately carved out of it.
+
+--------------------------------------------------------------------------------
+WHY
+--------------------------------------------------------------------------------
+
+The files here are data contracts, not implementation. A contract exists to be
+implemented by people who are not the author - that is the whole point of one -
+and a schema published under a licence that forbids reuse is not a contract, it
+is a document describing a contract that nobody is permitted to honour.
+
+Concretely: `career-graph.v1.schema.json` is the input format for a separate
+renderer. Anyone producing a career graph for that renderer, or writing a
+different renderer that consumes the same shape, must be free to copy this file,
+derive from it, generate types from it, embed it in their own software, and ship
+that software commercially, without asking anyone.
+
+CC0 gives them that with no attribution requirement and no viral obligation,
+which is the correct trade for a file whose value comes from being widely
+implemented rather than from being owned.
+
+--------------------------------------------------------------------------------
+THE DEDICATION
+--------------------------------------------------------------------------------
+
+To the extent possible under law, the author has waived all copyright and
+related or neighbouring rights to the files in this directory. This work is
+published from the United Kingdom.
+
+You can copy, modify, distribute and use these files, including for commercial
+purposes, all without asking permission.
+
+Full text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+--------------------------------------------------------------------------------
+WHAT THIS DOES NOT COVER
+--------------------------------------------------------------------------------
+
+- Any source code in this repository outside `contracts/`.
+- The implementation that produces documents in this format.
+- Any renderer that consumes this format.
+- The name "Chronicle", the site's written content, or its visual design.
+
+A licence on a format grants nothing over the software at either end of it.

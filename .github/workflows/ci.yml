@@ -28,6 +28,15 @@ jobs:
 
       - run: npm ci
 
+      # Types are generated from the schema and never hand-written, because a hand-written
+      # mirror drifts and the drift is silent. Regenerating must therefore change nothing.
+      # A diff here means either the schema moved without the types following, or somebody
+      # edited the generated file - and the second one passes every other check.
+      - name: Generated types still match the schema
+        run: |
+          npm run gen:contract
+          git diff --exit-code src/contract/types.ts
+
       # Run as three steps rather than `npm run verify`, so a red run names which of the
       # three failed on the summary page instead of in the log.
       - name: Typecheck

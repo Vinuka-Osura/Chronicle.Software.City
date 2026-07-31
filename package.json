@@ -10,6 +10,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "gen:contract": "json2ts --input contracts/career-graph.v1.schema.json --output src/contract/types.ts --additionalProperties false --style.printWidth 88",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
@@ -19,9 +20,12 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^22.0.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "eslint": "^10.8.0",
     "eslint-import-resolver-typescript": "^4.0.0",
     "eslint-plugin-import-x": "^4.0.0",
+    "json-schema-to-typescript": "^15.0.4",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.0.0",
     "vite-tsconfig-paths": "^5.0.0",

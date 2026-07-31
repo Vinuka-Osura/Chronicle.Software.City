@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chronicle.dev/contracts/career-graph.v1.schema.json",
+  "title": "Career Graph v1",
+  "description": "A career expressed as timestamped entities with lifecycles, for rendering as an explorable city. The consumer of this contract does not know or care whose career it is: it reads dates and decides what exists, what is under construction, and what has been upgraded at any point on a timeline. Chronicle is one producer of this shape; any system that can emit it can drive the same renderer.",
+
+  "type": "object",
+  "required": ["version", "generatedAt", "subject", "entities"],
+  "additionalProperties": false,
+
+  "properties": {
+    "version": {
+      "description": "Contract major version. A consumer must refuse a version it does not understand rather than guess.",
+      "type": "integer",
+      "const": 1
+    },
+
+    "generatedAt": {
+      "description": "When this document was produced. Not when anything in it happened.",
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "subject": {
+      "description": "Whose career this is. Presentation only - the renderer never branches on it.",
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "headline": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+
+    "entities": {
+      "description": "Everything in the city. Flat rather than nested, because an entity's place in the world is decided by its own dates and district, not by where it sits in a document.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity" }
+    }
+  },
+
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "required": ["id", "kind", "label", "built"],
+      "additionalProperties": false,
+
+      "properties": {
+        "id": {
+          "description": "Stable across regenerations. A consumer animating between two documents relies on this to know that a building moved rather than that one vanished and another appeared.",
+          "type": "string",
+          "minLength": 1
+        },
+
+        "kind": {
+          "description": "What this becomes in the world. building = a capability that grows in place; road = work that connects capabilities; district = a grouping; landmark = a moment that happened once.",
+          "type": "string",
+          "enum": ["building", "road", "district", "landmark"]
+        },
+
+        "label": { "type": "string", "minLength": 1 },
+
+        "district": {
+          "description": "The id of the district this belongs to, or null for entities that stand alone.",
+          "type": ["string", "null"]
+        },
+
+        "built": {
+          "description": "When this came into existence. Before this date the renderer must not show it at all - that is the entire premise of the timeline.",
+          "type": "string",
+          "format": "date"
+        },
+
+        "upgraded": {
+          "description": "Dates on which this grew. A capability deepening is an upgrade in place, never a replacement, so a building gains storeys rather than being demolished and rebuilt.",
+          "type": "array",
+          "items": { "type": "string", "format": "date" },
+          "default": []
+        },
+
+        "retired": {
+          "description": "When this stopped being current, if it ever did. Not a deletion: the renderer may show it unlit or weathered rather than removing it, because it did happen.",
+          "type": ["string", "null"],
+          "format": "date"
+        },
+
+        "magnitude": {
+          "description": "Relative size, 0 to 1, normalised by the producer. Height for a building, width for a road. Normalised rather than raw because only the producer knows what the maximum means - years of experience, lines of code, or something else entirely.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+
+        "connects": {
+          "description": "For roads: the entity ids this links. A project connects the capabilities it used, which is what makes it visually obvious how the pieces worked together.",
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+
+        "speculative": {
+          "description": "True for anything stated as an intention rather than a fact. The renderer MUST make these unmistakably different from built entities - blueprints, scaffolding, holograms. This flag is what lets the city be ambitious without being dishonest.",
+          "type": "boolean",
+          "default": false
+        },
+
+        "href": {
+          "description": "Where to read more, if anywhere. Absolute.",
+          "type": ["string", "null"],
+          "format": "uri"
+        },
+
+        "meta": {
+          "description": "Producer-specific extras. A consumer must ignore anything here it does not recognise, so a producer can add detail without breaking every renderer.",
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        }
+      }
+    }
+  }
+}

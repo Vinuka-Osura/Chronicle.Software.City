@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-31T06:00:00+00:00",
+  "subject": {
+    "name": "Every Legal Thing A Producer May Do"
+  },
+  "entities": [
+    {
+      "id": "minimal",
+      "kind": "building",
+      "label": "Only the four required fields",
+      "built": "2024-02-29"
+    },
+
+    {
+      "id": "district:solitary",
+      "kind": "district",
+      "label": "A district with exactly one building",
+      "district": null,
+      "built": "2023-01-01",
+      "magnitude": 0
+    },
+    {
+      "id": "only-tenant",
+      "kind": "building",
+      "label": "The only building in its district",
+      "district": "district:solitary",
+      "built": "2023-01-01",
+      "magnitude": 0.4
+    },
+
+    {
+      "id": "no-magnitude",
+      "kind": "building",
+      "label": "Magnitude omitted, which the schema allows",
+      "district": "district:solitary",
+      "built": "2023-06-01"
+    },
+    {
+      "id": "zero-magnitude",
+      "kind": "building",
+      "label": "Magnitude of exactly zero, which is not the same as omitted",
+      "district": "district:solitary",
+      "built": "2023-06-01",
+      "magnitude": 0
+    },
+
+    {
+      "id": "retired-building",
+      "kind": "building",
+      "label": "A capability no longer current, which still happened",
+      "district": "district:solitary",
+      "built": "2022-04-01",
+      "upgraded": ["2022-11-01"],
+      "retired": "2024-01-31",
+      "magnitude": 0.9
+    },
+
+    {
+      "id": "unsorted-upgrades",
+      "kind": "building",
+      "label": "Upgrade dates out of order, which the schema never said had to be sorted",
+      "district": "district:solitary",
+      "built": "2022-01-01",
+      "upgraded": ["2025-01-01", "2023-01-01", "2024-01-01"],
+      "magnitude": 0.6
+    },
+    {
+      "id": "upgrade-before-built",
+      "kind": "building",
+      "label": "An upgrade dated before construction, which is a producer bug",
+      "district": "district:solitary",
+      "built": "2024-01-01",
+      "upgraded": ["2023-01-01"],
+      "magnitude": 0.3
+    },
+    {
+      "id": "retired-before-built",
+      "kind": "building",
+      "label": "Retired before it was built, which is also a producer bug",
+      "district": "district:solitary",
+      "built": "2024-01-01",
+      "retired": "2023-01-01",
+      "magnitude": 0.3
+    },
+
+    {
+      "id": "orphan",
+      "kind": "building",
+      "label": "Names a district that is not in this document",
+      "district": "district:does-not-exist",
+      "built": "2023-03-01",
+      "magnitude": 0.5
+    },
+
+    {
+      "id": "road-connecting-nothing",
+      "kind": "road",
+      "label": "A project with no recorded tech stack",
+      "built": "2023-05-01",
+      "connects": [],
+      "magnitude": 0.6
+    },
+    {
+      "id": "road-connecting-one",
+      "kind": "road",
+      "label": "A project that used exactly one capability",
+      "built": "2023-07-01",
+      "connects": ["only-tenant"],
+      "magnitude": 0.6
+    },
+    {
+      "id": "road-connecting-a-ghost",
+      "kind": "road",
+      "label": "A project naming a capability that is not in this document",
+      "built": "2023-08-01",
+      "connects": ["only-tenant", "never-existed"],
+      "magnitude": 0.6
+    },
+
+    {
+      "id": "same-day-a",
+      "kind": "landmark",
+      "label": "Two things on one day, the first",
+      "built": "2025-05-05",
+      "magnitude": 0.5
+    },
+    {
+      "id": "same-day-b",
+      "kind": "landmark",
+      "label": "Two things on one day, the second",
+      "built": "2025-05-05",
+      "magnitude": 0.5
+    },
+    {
+      "id": "built-today",
+      "kind": "landmark",
+      "label": "Built on the day the document was generated",
+      "built": "2026-07-31",
+      "magnitude": 0.5
+    },
+
+    {
+      "id": "goal-whose-moment-passed",
+      "kind": "building",
+      "label": "A goal whose target date has been and gone, and which nobody marked done",
+      "built": "2025-03-01",
+      "speculative": true,
+      "magnitude": 0.5
+    },
+    {
+      "id": "goal-far-out",
+      "kind": "building",
+      "label": "A goal a long way past the end of everything built",
+      "built": "2041-01-01",
+      "speculative": true,
+      "magnitude": 0.5
+    },
+
+    {
+      "id": "carries-producer-extras",
+      "kind": "building",
+      "label": "meta holds things this renderer has never heard of",
+      "district": "district:solitary",
+      "built": "2024-08-08",
+      "magnitude": 0.5,
+      "meta": {
+        "proficiencyLabel": "Advanced",
+        "yearsExperience": 4,
+        "usedIn": ["a", "b"],
+        "nested": { "anything": true }
+      }
+    }
+  ]
+}
