@@ -15,8 +15,11 @@ is what makes it a product rather than a page.
 
 ## Where this is
 
-**Phase 7.** It is a package now — `npm pack`, install it into any React app, and a career
-graph renders. The 3D renderer loads only on a device that will use it.
+**Paused after phase 9, first two visual passes.** Everything builds, 263 tests pass, and
+the whole thing is pushed. It is a working npm package: `npm pack`, install it into any
+React app, and a career graph renders as an explorable city with a timeline.
+
+Pick up at **phase 8**, which is the only thing left before it can be shown to anyone.
 
 Build order and what "done" means for each step: [docs/phases.md](docs/phases.md).
 Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
@@ -31,8 +34,29 @@ Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
 | 5 | Moving through it — street mode, tooltips | **done** |
 | 6 | Time made visible — construction, weathering, quality tiers | **done** |
 | 7 | The package and the demo | **done** |
-| 8 | Into the portfolio | next |
-| 9 | The city takes its final form — the diorama look | |
+| 8 | Into the portfolio | **next — needs a decision, see below** |
+| 9 | The city takes its final form — the diorama look | **two passes done**, more when it earns it |
+
+### What is waiting on a decision
+
+Neither is a code problem; both need something only the owner can give.
+
+1. **Phase 8 happens in Chronicle's repository, not this one.** It installs this package at
+   `/city` and feeds it `/api/career-graph`, replacing the Coming Soon teaser. Small — a
+   dependency, a route, and a fetch — but it is a change to a repository this work has so
+   far been forbidden to touch.
+2. **Deploying the demo needs a Vercel account.** `vercel.json` is written and ready: a
+   second Hobby project on a subdomain of the portfolio's domain, which costs nothing.
+
+### Where the look got to
+
+Forms, layout and materials have had two passes. The city is blocks and streets on a round
+plate with a ring road, five building shapes chosen by district and size, glossy surfaces
+lit by a procedurally-built environment, and crown trim whose brightness is the
+capability's own magnitude.
+
+It has been verified as *correct* far more than it has been judged as *good*. The next
+visual increment should start from someone looking at it rather than from this list.
 
 ## The shape
 
