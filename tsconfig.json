@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["node"],
+
+    // Strictness. The engine is the product and being wrong in it is invisible until it
+    // is embarrassing, so every check that costs nothing at runtime is on.
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // Type syntax must be erasable rather than emitting runtime code. It keeps the
+    // package consumable by bundlers and by node --strip-types without a transform, and
+    // it rules out enums and namespaces, neither of which this needs.
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    // The layering from CLAUDE.md, spelled as aliases so a crossed boundary is visible
+    // in the import line while you are typing it. The lint rule resolves through these.
+    "baseUrl": ".",
+    "paths": {
+      "@contract/*": ["src/contract/*"],
+      "@engine/*": ["src/engine/*"],
+      "@render/*": ["src/render/*"],
+      "@react/*": ["src/react/*"]
+    }
+  },
+  "include": ["src", "tests", "*.config.ts"]
+}

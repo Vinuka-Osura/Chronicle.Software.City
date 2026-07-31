@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [development, main]
+  pull_request:
+    branches: [development, main]
+
+# A second push supersedes the first. Nothing here needs the older answer.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Run as three steps rather than `npm run verify`, so a red run names which of the
+      # three failed on the summary page instead of in the log.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Includes the architecture test, which proves the layering rule still refuses what
+      # it is supposed to refuse. A misconfigured lint rule passes everything silently,
+      # so lint being green is not evidence that the boundary exists.
+      - name: Test
+        run: npm test
+
+      # Development happens on Windows and CI on Linux. Line endings are normalised by
+      # .gitattributes; this catches the case where they are not.
+      - name: Working tree is clean
+        run: git diff --exit-code

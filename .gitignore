@@ -8,6 +8,11 @@
 docs/Portfolio-*.md
 docs/software-city-CLAUDE.md.template
 
+# Probe files written, linted and deleted by tests/architecture.test.ts. They exist for
+# milliseconds; they are ignored here so that a crashed run cannot leave a deliberately
+# illegal import staged for commit.
+src/**/__boundary-probe.ts
+
 # Dependencies
 node_modules/
 .pnp/
