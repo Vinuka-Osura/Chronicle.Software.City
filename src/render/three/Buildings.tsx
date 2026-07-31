@@ -115,8 +115,6 @@ export function Buildings({
     [material],
   );
 
-  const districtCount = Math.max(model.districts.size, 1);
-
   if (groups.length === 0) return null;
 
   return (
@@ -129,7 +127,6 @@ export function Buildings({
           frame={frame}
           speculative={speculative}
           material={material}
-          districtCount={districtCount}
           homeOf={homeOf}
           onPick={onPick}
         />
@@ -144,7 +141,6 @@ function FormMesh({
   frame,
   speculative,
   material,
-  districtCount,
   homeOf,
   onPick,
 }: {
@@ -153,13 +149,12 @@ function FormMesh({
   readonly frame: RefObject<CityFrame>;
   readonly speculative: boolean;
   readonly material: ReturnType<typeof createBuildingMaterial> | null;
-  readonly districtCount: number;
   readonly homeOf: ReadonlyMap<string, number>;
   readonly onPick: ((pick: CityPick | null) => void) | undefined;
 }): JSX.Element {
   const mesh = useRef<InstancedMesh>(null);
   const podiums = useRef<InstancedMesh>(null);
-  const decayAttribute = useRef<InstancedBufferAttribute>(null);
+  const lifecycleAttribute = useRef<InstancedBufferAttribute>(null);
   const lastAt = useRef(Number.NaN);
 
   const { items } = group;
@@ -173,13 +168,15 @@ function FormMesh({
   );
 
   /**
-   * Per-instance weathering, as an attribute rather than by rewriting instance colours.
+   * Two per-instance floats: how weathered a building is, and how brightly its crown
+   * trim burns.
    *
-   * Colour is written once and never again; decay changes with the date. Keeping them
-   * apart means a retired building greys in the shader without the CPU touching the colour
-   * buffer, and without a second material for "retired".
+   * An attribute rather than a rewrite of instance colours. Colour is written once and
+   * never again; these change with the date. Keeping them apart means a retired building
+   * greys and goes dark entirely in the shader, without the CPU touching the colour
+   * buffer and without a second material for "retired".
    */
-  const decay = useMemo(() => new Float32Array(items.length), [items.length]);
+  const lifecycle = useMemo(() => new Float32Array(items.length * 2), [items.length]);
 
   // Colour never changes with the date, so it is written once rather than every frame.
   useLayoutEffect(() => {
@@ -189,13 +186,13 @@ function FormMesh({
     instanced.instanceMatrix.setUsage(DynamicDrawUsage);
 
     for (const [slot, item] of items.entries()) {
-      const hue = districtHue(homeOf.get(item.id) ?? 0, districtCount);
-      colour.setHSL(hue, speculative ? 0.55 : 0.24, speculative ? 0.62 : 0.58);
+      const hue = districtHue(homeOf.get(item.id) ?? 0);
+      colour.setHSL(hue, speculative ? 0.62 : 0.42, speculative ? 0.62 : 0.52);
       instanced.setColorAt(slot, colour);
     }
 
     if (instanced.instanceColor !== null) instanced.instanceColor.needsUpdate = true;
-  }, [items, speculative, homeOf, districtCount]);
+  }, [items, speculative, homeOf]);
 
   useFrame(() => {
     const instanced = mesh.current;
@@ -217,11 +214,14 @@ function FormMesh({
         // reallocated and `instanceId` still means what it meant.
         instanced.setMatrixAt(slot, hidden);
         podiums.current?.setMatrixAt(slot, hidden);
-        decay[slot] = 0;
+        lifecycle[slot * 2] = 0;
         continue;
       }
 
-      decay[slot] = current.decay[item.index] ?? 0;
+      lifecycle[slot * 2] = current.decay[item.index] ?? 0;
+      // Trim brightness is the capability's own magnitude, so the things somebody took
+      // furthest are the things that light up.
+      lifecycle[slot * 2 + 1] = item.magnitude;
 
       const storeys = speculative ? 1 : (current.storeys[item.index] ?? 0);
       const box = buildingBox(item, plot, storeys);
@@ -251,7 +251,7 @@ function FormMesh({
 
     instanced.instanceMatrix.needsUpdate = true;
     if (podiums.current !== null) podiums.current.instanceMatrix.needsUpdate = true;
-    if (decayAttribute.current !== null) decayAttribute.current.needsUpdate = true;
+    if (lifecycleAttribute.current !== null) lifecycleAttribute.current.needsUpdate = true;
     // Raycasting an InstancedMesh tests this first, so a stale sphere is a building that is
     // plainly there and cannot be pointed at.
     instanced.computeBoundingSphere();
@@ -294,9 +294,9 @@ function FormMesh({
           <primitive object={material} attach="material" />
         )}
         <instancedBufferAttribute
-          ref={decayAttribute}
-          attach="geometry-attributes-aDecay"
-          args={[decay, 1]}
+          ref={lifecycleAttribute}
+          attach="geometry-attributes-aLifecycle"
+          args={[lifecycle, 2]}
         />
       </instancedMesh>
 

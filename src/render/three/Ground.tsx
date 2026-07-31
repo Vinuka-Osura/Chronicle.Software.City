@@ -17,7 +17,7 @@ export function Districts({ model }: { readonly model: CityModel }): JSX.Element
     return ids.map((id, position) => ({
       id,
       area: model.districts.get(id),
-      hue: districtHue(position, ids.length),
+      hue: districtHue(position),
     }));
   }, [model]);
 

@@ -180,12 +180,17 @@ export function maxPolarAngle(): number {
  * Keyed on the district's position in a sorted list rather than on a hash of its id: a hash
  * gives two adjacent districts near-identical colours often enough to matter, and the
  * producer's ids are not ours to read meaning from anyway.
+ *
+ * Stepping by the golden ratio rather than dividing the wheel by the district count. An
+ * even division needs to know the total, and it behaves badly at both ends - three
+ * districts land 120 degrees apart and fight each other, twelve land close enough that
+ * neighbours are indistinguishable. This spaces them well at any count, and needs no count
+ * at all, so a district's colour no longer changes when a new one is added.
  */
-export function districtHue(position: number, total: number): number {
-  const spread = Math.max(total, 1);
+export function districtHue(position: number): number {
   // Offset so the first district is a blue rather than a red: the eye reads the first
   // colour as the default, and a city of red buildings reads as alarming.
-  return (0.58 + position / spread) % 1;
+  return (0.58 + position * 0.618_033_988_75) % 1;
 }
 
 export interface Bounds2 {

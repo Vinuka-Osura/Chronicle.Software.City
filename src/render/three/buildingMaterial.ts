@@ -28,10 +28,14 @@ export function createBuildingMaterial(
 ): MeshStandardMaterial {
   const windows = options.windows ?? true;
 
+  // Glossier than a real building, on purpose. The reference is a stylised diorama, and
+  // the environment map below is what those reflections come from - so roughness is what
+  // decides whether any of it is visible.
   const material = new MeshStandardMaterial({
-    roughness: 0.68,
-    metalness: 0.06,
+    roughness: 0.34,
+    metalness: 0.22,
     vertexColors: true,
+    envMapIntensity: 0.9,
   });
 
   material.onBeforeCompile = (shader) => {
@@ -41,17 +45,17 @@ export function createBuildingMaterial(
       .replace(
         "#include <common>",
         `#include <common>
-         attribute float aDecay;
+         attribute vec2 aLifecycle;
          varying vec3 vLocalPosition;
          varying vec3 vWorldScale;
          varying float vSideness;
-         varying float vDecay;`,
+         varying vec2 vLifecycle;`,
       )
       .replace(
         "#include <begin_vertex>",
         `#include <begin_vertex>
          vLocalPosition = position;
-         vDecay = aDecay;
+         vLifecycle = aLifecycle;
          // Each column of the instance matrix is an axis scaled by that axis's scale, so
          // its length is the scale. This is how the shader knows how tall the building is
          // without being told separately.
@@ -72,7 +76,7 @@ export function createBuildingMaterial(
          varying vec3 vLocalPosition;
          varying vec3 vWorldScale;
          varying float vSideness;
-         varying float vDecay;
+         varying vec2 vLifecycle;
 
          float hash21(vec2 p) {
            p = fract(p * vec2(123.34, 456.21));
@@ -106,6 +110,9 @@ export function createBuildingMaterial(
            float base = 1.0 - smoothstep(0.0, 6.0, heightUp);
            diffuseColor.rgb *= mix(1.0, 0.68, base * vSideness);
 
+           float decay = vLifecycle.x;
+           float trim = vLifecycle.y;
+
            if (uWindows > 0.5) {
              vec2 cell = vec2(floor(column), floor(storey));
              float lit = hash21(cell);
@@ -118,13 +125,24 @@ export function createBuildingMaterial(
 
              // Unlit as it weathers. A retired capability is not demolished - it is
              // still standing, and nobody is in it.
-             totalEmissiveRadiance += vec3(1.0, 0.86, 0.62) * pane * 0.55 * (1.0 - vDecay);
+             totalEmissiveRadiance += vec3(1.0, 0.86, 0.62) * pane * 0.55 * (1.0 - decay);
            }
+
+           // A lit band near the crown, in the district's own colour.
+           //
+           // Brightness comes from magnitude, so the trim says something rather than
+           // decorating: the capabilities somebody has taken furthest are the ones that
+           // light up. A city where everything glowed equally would be prettier and would
+           // be telling the viewer nothing.
+           float fromTop = vWorldScale.y - heightUp;
+           float crown = smoothstep(0.3, 0.55, fromTop) * (1.0 - smoothstep(1.2, 1.6, fromTop));
+           totalEmissiveRadiance +=
+             vColor * crown * vSideness * trim * 2.4 * (1.0 - decay);
 
            // Retired is not deleted. Colour drains toward grey and the surface darkens,
            // which reads as weathering rather than as removal - the building happened.
            float grey = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(grey * 0.74), vDecay * 0.88);
+           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(grey * 0.74), decay * 0.88);
          }`,
       );
   };

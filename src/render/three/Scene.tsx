@@ -1,7 +1,8 @@
 import { useEffect, useMemo, type JSX } from "react";
 import { OrbitControls, Sky } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { Vector3 } from "three";
+import { PMREMGenerator, Vector3 } from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { CityBounds } from "../frame";
 import { boundsCircle, cameraFrame, maxPolarAngle } from "./city-geometry";
 import { StreetExitDistance } from "./navigation";
@@ -19,6 +20,41 @@ import type { QualitySettings } from "./quality";
  * content security policy would block it, and partly because an asset that fails to load
  * is a city that renders wrong for reasons nobody can see.
  */
+
+/**
+ * Reflections, from a room that is built rather than downloaded.
+ *
+ * Glossy surfaces need something to reflect. The usual answer is an HDRI, which means an
+ * asset to fetch - blocked by a strict content security policy, and a city that renders
+ * flat grey for one viewer and glossy for everyone else is worse than one that is always
+ * flat.
+ *
+ * `RoomEnvironment` constructs a lit box out of geometry and lights, and PMREM turns it
+ * into an environment map. Nothing is loaded, nothing can fail, and the buildings pick up
+ * highlights that make them read as surfaces rather than as coloured shapes.
+ */
+function ProceduralEnvironment(): null {
+  const { gl, scene } = useThree();
+
+  useEffect(() => {
+    const generator = new PMREMGenerator(gl);
+    const room = new RoomEnvironment();
+    const environment = generator.fromScene(room, 0.04).texture;
+
+    scene.environment = environment;
+    // Enough for highlights and edges, not enough to wash out the sun's own shading.
+    scene.environmentIntensity = 0.65;
+
+    return () => {
+      scene.environment = null;
+      environment.dispose();
+      generator.dispose();
+      room.dispose();
+    };
+  }, [gl, scene]);
+
+  return null;
+}
 
 export function SceneLighting({
   bounds,
@@ -48,7 +84,7 @@ export function SceneLighting({
       {/* Low-ish sun: long shadows read as depth, and a midday sun flattens everything. */}
       <directionalLight
         position={[centreX + extent * 0.7, extent * 1.1, centreZ + extent * 0.5]}
-        intensity={2.4}
+        intensity={2.6}
         castShadow={settings.shadows}
         shadow-mapSize={[settings.shadowMapSize, settings.shadowMapSize]}
         shadow-bias={-0.0006}
@@ -61,8 +97,10 @@ export function SceneLighting({
       </directionalLight>
 
       {/* Sky above, ground bounce below: what stops the unlit face being a black hole. */}
-      <hemisphereLight args={["#bcd4f0", "#6d7264", 1.1]} />
-      <ambientLight intensity={0.25} />
+      <hemisphereLight args={["#cfe2f7", "#6b7360", 0.95]} />
+      <ambientLight intensity={0.18} />
+
+      <ProceduralEnvironment />
     </>
   );
 }

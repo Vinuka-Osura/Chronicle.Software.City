@@ -149,25 +149,37 @@ describe("the opening shot", () => {
 
 describe("district colour", () => {
   it("gives every district a different hue", () => {
-    const hues = [0, 1, 2, 3, 4, 5].map((position) => districtHue(position, 6));
+    const hues = [0, 1, 2, 3, 4, 5].map(districtHue);
 
     expect(new Set(hues).size).toBe(6);
   });
 
   it("stays inside the colour wheel", () => {
     for (let position = 0; position < 12; position += 1) {
-      const hue = districtHue(position, 12);
+      const hue = districtHue(position);
       expect(hue).toBeGreaterThanOrEqual(0);
       expect(hue).toBeLessThan(1);
     }
   });
 
-  it("is the same colour every run, for the same district in the same city", () => {
-    expect(districtHue(3, 6)).toBe(districtHue(3, 6));
+  it("keeps neighbours apart even at a dozen districts", () => {
+    // The failure mode of dividing the wheel evenly: at twelve, adjacent districts are
+    // thirty degrees apart and nobody can tell them apart on a small building.
+    const hues = Array.from({ length: 12 }, (_, position) => districtHue(position)).sort(
+      (a, b) => a - b,
+    );
+
+    for (const [index, hue] of hues.entries()) {
+      if (index === 0) continue;
+      expect(hue - (hues[index - 1] ?? 0)).toBeGreaterThan(0.03);
+    }
   });
 
-  it("does not divide by zero on a city with no districts", () => {
-    expect(Number.isFinite(districtHue(0, 0))).toBe(true);
+  it("does not change a district's colour when another is added", () => {
+    // It takes no count, so it cannot. Adding a district to a career must not repaint the
+    // ones that were already there.
+    expect(districtHue(3)).toBe(districtHue(3));
+    expect(districtHue(0)).toBe(districtHue(0));
   });
 });
 
