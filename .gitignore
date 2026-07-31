@@ -1,0 +1,38 @@
+# Chronicle's own documentation, kept locally as reference while building.
+#
+# It is NOT this repository's to publish. Chronicle's root licence reserves
+# essentially all rights, and the only file carved out of it is the CC0 schema in
+# contracts/. Committing a proprietary document here is precisely the provenance
+# problem this repository exists at arm's length to avoid - "it used to live inside a
+# proprietary repo" is not an answer to give a buyer's lawyer.
+docs/Portfolio-*.md
+docs/software-city-CLAUDE.md.template
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.*
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Test and tooling caches
+coverage/
+.vite/
+.eslintcache
+
+# Environment. Assume every repository is public: nothing real belongs in a file.
+.env
+.env.*
+!.env.example
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
