@@ -1,0 +1,196 @@
+/*
+ * Deliberately plain. This view exists to show whether the timeline and the lifecycle
+ * logic are right, and anything decorative here would be a way of not finding out.
+ */
+
+:root {
+  --ink: #14181f;
+  --paper: #f4f4f1;
+  --rule: #cfd2cd;
+  --built: #2d3b52;
+  --road: #7b6a4f;
+  --landmark: #8a4b2a;
+  --blueprint: #2f7d8a;
+  --retired: #9aa0a6;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8e8e4;
+    --paper: #14161a;
+    --rule: #333;
+    --built: #93aed3;
+    --road: #c0a878;
+    --landmark: #d9855c;
+    --blueprint: #6fd2e2;
+    --retired: #6a7076;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 1rem clamp(1rem, 4vw, 2.5rem);
+  background: var(--paper);
+  color: var(--ink);
+  font: 15px/1.5 ui-sans-serif, system-ui, sans-serif;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.note,
+.subject,
+.readout,
+footer {
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+  font-size: 0.85rem;
+}
+
+.note {
+  margin: 0.35rem 0 1rem;
+  max-width: 62ch;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.problems {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  border-left: 3px solid #b3261e;
+  background: color-mix(in srgb, #b3261e 8%, transparent);
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+}
+
+.stage {
+  margin: 1rem 0;
+  min-height: 55vh;
+  border: 1px solid var(--rule);
+}
+
+.stage svg {
+  display: block;
+  width: 100%;
+  height: 55vh;
+}
+
+/* The city itself. Shapes carry the meaning; colour only reinforces it. */
+.district {
+  fill: none;
+  stroke: var(--rule);
+  stroke-dasharray: 3 5;
+}
+
+.road {
+  fill: none;
+  stroke: var(--road);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.building {
+  fill: var(--built);
+}
+
+.landmark {
+  fill: var(--landmark);
+}
+
+/* Never filled, always dashed: a goal must not be mistakable for an achievement. */
+.blueprint {
+  fill: none;
+  stroke: var(--blueprint);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 3;
+}
+
+/* Retired is not deleted. It is greyed and left standing. */
+.retired {
+  fill: var(--retired);
+  stroke: var(--retired);
+}
+
+.label {
+  fill: color-mix(in srgb, var(--ink) 55%, transparent);
+  font: 5px ui-sans-serif, system-ui, sans-serif;
+  text-anchor: middle;
+}
+
+.district-label {
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timeline {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.timeline button {
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+}
+
+.track input {
+  width: 100%;
+}
+
+.today {
+  position: absolute;
+  top: 100%;
+  translate: -50% 0;
+  border-left: 1px solid var(--ink);
+  padding-left: 0.25rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.readout {
+  min-width: 11ch;
+  font-family: ui-monospace, monospace;
+  text-align: right;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+}

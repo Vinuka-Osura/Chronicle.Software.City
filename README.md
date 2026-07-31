@@ -15,9 +15,9 @@ is what makes it a product rather than a page.
 
 ## Where this is
 
-**Phase 2.** The engine is finished and tested. It knows what exists at any instant, and
-where everything stands. Nothing renders yet — that is phase 3, and it is the first phase
-with a picture.
+**Phase 3.** There is a city, and a timeline that plays it. Flat and top-down —
+deliberately ugly, because this is where the chronology is proved while the renderer is
+still disposable. `npm run dev` and drag the slider.
 
 Build order and what "done" means for each step: [docs/phases.md](docs/phases.md).
 Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
@@ -27,8 +27,8 @@ Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
 | 0 | Foundations | **done** |
 | 1 | The contract — generated types, validator, fixtures | **done** |
 | 2 | The engine — `worldAt`, `layout`, no graphics at all | **done** |
-| 3 | Flat renderer and the timeline scrubber | next |
-| 4 | The city in three dimensions | |
+| 3 | Flat renderer and the timeline scrubber | **done** |
+| 4 | The city in three dimensions | next |
 | 5 | Time made visible — construction, playback | |
 | 6 | The package and the demo | |
 | 7 | Into the portfolio | |
@@ -62,9 +62,14 @@ asserts it is refused.
 
 ```bash
 npm install
+npm run dev           # the demo, on http://localhost:5173
 npm run verify        # typecheck, lint and test - all three
 ```
 
-`npm run build` does not exist yet; there is nothing to build until phase 6.
+Pick a fixture, or drop in your own career graph. Drag the slider; the city builds itself
+as you go rather than cutting to the result.
+
+There is no `npm run build` yet — the package build arrives in phase 6. `npm run
+build:demo` builds the demo site.
 
 Working conventions, and the rules that are expensive to break: [CLAUDE.md](CLAUDE.md).

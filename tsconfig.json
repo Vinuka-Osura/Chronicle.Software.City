@@ -43,5 +43,5 @@
       "@react/*": ["src/react/*"]
     }
   },
-  "include": ["src", "tests", "*.config.ts"]
+  "include": ["src", "tests", "demo", "*.config.ts"]
 }

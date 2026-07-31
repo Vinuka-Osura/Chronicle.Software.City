@@ -11,6 +11,8 @@
   },
   "scripts": {
     "gen:contract": "json2ts --input contracts/career-graph.v1.schema.json --output src/contract/types.ts --additionalProperties false --style.printWidth 88",
+    "dev": "vite --config demo/vite.config.ts",
+    "build:demo": "vite build --config demo/vite.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",

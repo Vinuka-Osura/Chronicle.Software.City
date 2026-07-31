@@ -14,6 +14,9 @@ export type {
   EntityKind,
 } from "./compile";
 
+export { createClock } from "./clock";
+export type { ClockOptions, TimelineClock } from "./clock";
+
 export { layout } from "./layout";
 export type { Bounds, DistrictArea, Layout, Plot, Point } from "./layout";
 
