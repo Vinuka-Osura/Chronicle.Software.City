@@ -1,26 +1,29 @@
 {
   "name": "chronicle-software-city",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A career-visualisation engine. Reads a timestamped career graph and renders an explorable 3D city that rebuilds itself as a timeline is dragged.",
   "license": "SEE LICENSE IN LICENSE",
   "author": "Vinuka Osura",
   "type": "module",
-  "private": true,
+  "private": false,
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "gen:contract": "json2ts --input contracts/career-graph.v1.schema.json --output src/contract/types.ts --additionalProperties false --style.printWidth 88",
     "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build --config vite.lib.config.ts",
     "build:demo": "vite build --config demo/vite.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "npm run typecheck && npm run lint && npm run test"
+    "verify": "npm run typecheck && npm run lint && npm run test",
+    "prepack": "npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@microsoft/api-extractor": "^7.58.12",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@types/node": "^22.0.0",
@@ -39,6 +42,7 @@
     "three": "^0.185.1",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.0.0",
+    "vite-plugin-dts": "^5.0.3",
     "vite-tsconfig-paths": "^5.0.0",
     "vitest": "^3.0.0"
   },
@@ -46,5 +50,35 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "three": ">=0.170.0"
+  },
+  "main": "./dist/software-city.js",
+  "module": "./dist/software-city.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/software-city.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "contracts",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "career",
+    "visualisation",
+    "timeline",
+    "three",
+    "react",
+    "portfolio",
+    "city"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vinuka-Osura/Chronicle.Software.City.git"
   }
 }

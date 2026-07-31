@@ -200,6 +200,32 @@ no code change in either repository. That is the whole thesis demonstrated in on
 
 ---
 
+## Phase 9 — the city takes its final form
+
+Structure first, appearance second — that order was deliberate and it is now paid off. The
+blocks, the streets, the lifecycle and the timeline are right, and plain boxes standing on
+them can become a city without any of that being disturbed.
+
+The target is a **stylised diorama** (design.md §7): a round base, a ring road, glossy
+surfaces, emissive accents, and silhouettes that vary — domes, spires, curved forms,
+setbacks — with trees and props at street level.
+
+- Varied building forms, **chosen by data** — kind, magnitude, district — never for looks
+  alone.
+- A base plate and perimeter ring road, so the city is an object rather than a clipping of
+  an infinite plane.
+- Street-level props: trees, benches, vehicles. Density from how built-up a district is.
+- Emissive trim and night lighting.
+
+**All generated.** No modelled assets, no atlases, nothing fetched — that is what keeps the
+package self-contained.
+
+**This should land before the portfolio embed is public.** It is placed after phase 8
+because packaging is a prerequisite for iterating in place, not because the look matters
+less than the plumbing.
+
+---
+
 ## v2 — everything the concept doc promises and v1 does not
 
 Weather, traffic, day/night, the airport.

@@ -26,6 +26,14 @@ export interface CityCanvasProps {
   readonly onPick?: ((pick: CityPick | null) => void) | undefined;
   readonly mode: CameraMode;
   readonly onModeChange: (mode: CameraMode) => void;
+  /**
+   * Called once per rendered frame, with the elapsed seconds.
+   *
+   * A callback rather than expecting the caller to put a component inside the canvas: that
+   * would mean whoever owns the clock also imports react-three-fiber, and the whole point
+   * of this entry being separate is that nothing outside it does.
+   */
+  readonly onFrame?: ((deltaSeconds: number) => void) | undefined;
   /** Anything that needs to run inside the render loop - a clock driver, for instance. */
   readonly children?: ReactNode;
 }
@@ -37,6 +45,7 @@ export function CityCanvas({
   onPick,
   mode,
   onModeChange,
+  onFrame,
   children,
 }: CityCanvasProps): JSX.Element {
   const camera = useMemo(() => cameraFrame(model.bounds), [model.bounds]);
@@ -98,9 +107,18 @@ export function CityCanvas({
         <StreetControls model={model} frame={frame} onExit={leaveStreet} />
       )}
 
+      {onFrame !== undefined && <FrameDriver onFrame={onFrame} />}
       {children}
     </Canvas>
   );
+}
+
+/** Runs the host's per-frame work inside the render loop, where it belongs. */
+function FrameDriver({ onFrame }: { readonly onFrame: (deltaSeconds: number) => void }): null {
+  useFrame((_, delta) => {
+    onFrame(Math.min(delta, 0.1));
+  });
+  return null;
 }
 
 /**

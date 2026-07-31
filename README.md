@@ -15,8 +15,8 @@ is what makes it a product rather than a page.
 
 ## Where this is
 
-**Phase 6.** Buildings go up under scaffolding with a crane beside them, retired ones
-weather and go dark, and the whole thing steps itself down on a weak device. `npm run dev`.
+**Phase 7.** It is a package now — `npm pack`, install it into any React app, and a career
+graph renders. The 3D renderer loads only on a device that will use it.
 
 Build order and what "done" means for each step: [docs/phases.md](docs/phases.md).
 Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
@@ -30,8 +30,9 @@ Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
 | 4 | The city in three dimensions | **done** |
 | 5 | Moving through it — street mode, tooltips | **done** |
 | 6 | Time made visible — construction, weathering, quality tiers | **done** |
-| 7 | The package and the demo | next |
-| 8 | Into the portfolio | |
+| 7 | The package and the demo | **done** |
+| 8 | Into the portfolio | next |
+| 9 | The city takes its final form — the diorama look | |
 
 ## The shape
 
@@ -72,7 +73,41 @@ at anything for its details. Drag the timeline and the city builds itself as you
 than cutting to the result. The "flat renderer" checkbox shows what a device without WebGL
 gets.
 
-There is no `npm run build` yet — the package build arrives in phase 7. `npm run
-build:demo` builds the demo site.
+`npm run build` builds the package; `npm run build:demo` builds the demo site.
+
+## Using it
+
+```bash
+npm install chronicle-software-city react react-dom three
+```
+
+```tsx
+import { SoftwareCity } from "chronicle-software-city";
+
+export function Career({ graph }: { graph: unknown }) {
+  return <SoftwareCity graph={graph} className="h-[70vh]" />;
+}
+```
+
+**It never fetches.** Getting the JSON is your application's job — from a file, an import,
+or your own API. Anything conforming to `career-graph.v1` works; the document is validated
+at the boundary and an unrecognised version is refused with a message you can show a user.
+
+React, react-dom and three are **peer dependencies**, so there is only ever one copy of
+each in your page. The three-dimensional renderer is behind a dynamic import: a host pays
+for it only on a device that has WebGL, and never on one that does not — where the flat
+renderer takes over on its own.
+
+The engine is exported too, for anything that needs to know what existed on a date without
+drawing it:
+
+```ts
+import { parseCareerGraph, compileGraph, worldAt } from "chronicle-software-city";
+
+const parsed = parseCareerGraph(document);
+if (parsed.ok) {
+  const world = worldAt(compileGraph(parsed.graph), Date.now());
+}
+```
 
 Working conventions, and the rules that are expensive to break: [CLAUDE.md](CLAUDE.md).

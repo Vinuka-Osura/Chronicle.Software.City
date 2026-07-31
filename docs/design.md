@@ -332,6 +332,28 @@ And the city is laid out as **blocks and streets**: rectangular districts on a s
 buildings in rows inside them, and roads that turn right angles instead of cutting
 diagonally across everything.
 
+### Where the look is going
+
+The agreed visual target is a **stylised diorama**, not realism: the city sitting on a
+round base, a ring road around its edge, glossy surfaces, strong emissive accents, and
+silhouettes that vary — towers, domes, curved forms, spires, setbacks — with trees and
+small props at street level.
+
+What is built today is deliberately the *structure*: correct blocks, correct streets,
+correct lifecycle, plain boxes. That was the right order — a beautiful city with a wrong
+chronology is worth nothing, and the chronology is now provably right.
+
+Two constraints shape how that target gets reached, and neither is negotiable:
+
+1. **Everything stays generated.** No modelled assets, no texture atlases, nothing fetched.
+   A diorama look is reachable procedurally — swept profiles, lathe geometry for domes and
+   spires, setbacks from the storey count, emissive trims — and reaching it that way keeps
+   the package self-contained and the CSP happy.
+2. **Every visual difference must come from data.** A dome rather than a tower has to *mean*
+   something — a kind, a magnitude, a district — or the city is decoration pretending to be
+   information. The moment a shape is chosen for looks alone, the product stops being
+   honest about the career it is drawing.
+
 What buys the most reaction per frame of budget, in order: **real light** (a directional
 sun with soft shadows, plus hemisphere fill, so buildings have form), **a sky and fog**
 (depth, and an horizon for the eye to rest on), **materials with edges** — a slight bevel
@@ -376,6 +398,23 @@ understood.
 
 So there is nothing beneath the map, a camera under it would show the backs of polygons,
 and the clamp has no condition to gate on.
+
+**Everything the underground was going to carry now lives on the surface**, and none of it
+needed a new idea — the contract already had somewhere to put all of it:
+
+| Concept doc's underground layer | Stood for | Surface form |
+|---|---|---|
+| Bedrock | Education, certifications, fundamentals | **Landmarks** on the civic axis. A degree happened once, on a date — which is what a landmark is. |
+| Sewers | Legacy systems maintained or modernised | **A retired building, still standing.** Weathered and unlit, never removed. The lifecycle already says this exactly. |
+| Power grid | Languages and frameworks | **Buildings**, in their district. They are capabilities that deepen; that is what a building is. |
+| Water pipes | Core CS knowledge | **Buildings.** Older, so nearer the centre of their district — which the layout already does by date. |
+| Utility tunnels | CI/CD, DevOps automation | **Buildings** in a DevOps district. |
+| Metro | Shared architecture, reusable libraries | **Roads.** A shared library connects many capabilities, and connecting capabilities is precisely what a road is for. |
+| Fibre | APIs, messaging | **Roads**, for the same reason. |
+
+The point worth keeping: this is a producer's mapping decision, not the renderer's. The
+engine sees `building`, `road`, `district` and `landmark` and nothing else. A producer that
+wants "legacy system" to read as weathered simply gives it a `retired` date, and it does.
 
 ### Everything carries a tooltip
 

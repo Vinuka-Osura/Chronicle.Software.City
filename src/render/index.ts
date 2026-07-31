@@ -12,7 +12,9 @@ export type { SvgOptions } from "./svg";
 
 export { supportsWebGl } from "./webgl";
 
-export { CityCanvas } from "./three/CityCanvas";
+// NOT exported here: CityCanvas and anything else that imports three. They live behind
+// `@render/three`, so that importing this barrel costs nothing but the flat renderer.
+// Types are safe - they are erased - so a consumer can still name them without the weight.
 export type { CameraMode, CityCanvasProps } from "./three/CityCanvas";
 
 export type { CityPick } from "./three/picking";
@@ -26,7 +28,6 @@ export {
   walkStep,
 } from "./three/navigation";
 export type { Ground2D, Obstacle } from "./three/navigation";
-export { createBuildingMaterial } from "./three/buildingMaterial";
 export { chooseQuality, detectQuality, readDeviceHints, settingsFor } from "./three/quality";
 export type { DeviceHints, QualitySettings, QualityTier } from "./three/quality";
 export {

@@ -1,5 +1,13 @@
-import { useEffect, useMemo, useState, useSyncExternalStore, type JSX } from "react";
-import { useFrame } from "@react-three/fiber";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from "react";
 import { formatProblems, parseCareerGraph } from "@contract";
 import type { GraphProblem } from "@contract";
 import {
@@ -11,9 +19,21 @@ import {
   worldAt,
 } from "@engine";
 import type { CareerSpan, CompileOptions, TimelineClock } from "@engine";
-import { CityCanvas, renderCitySvg, supportsWebGl } from "@render";
+import { renderCitySvg, supportsWebGl } from "@render";
 import type { CameraMode, CityFrame, CityPick } from "@render";
 import { toCityFrame, toCityModel } from "./model";
+
+/**
+ * The three-dimensional renderer, loaded only when it is going to be used.
+ *
+ * Three.js and react-three-fiber are around 300KB gzipped. A host embedding this - a
+ * portfolio, say - should not pay that on first paint before anything has checked for
+ * WebGL, and should never pay it on a device that has none. The flat renderer stands in
+ * while it arrives, which means the city is on screen either way.
+ */
+const CityCanvas = lazy(async () => ({
+  default: (await import("@render/three")).CityCanvas,
+}));
 
 /**
  * The package's public surface: a career graph in, a city out.
@@ -167,6 +187,15 @@ function SolidCity({
   const [mode, setMode] = useState<CameraMode>("orbit");
   const [pick, setPick] = useState<CityPick | null>(null);
 
+  const advance = useCallback(
+    (delta: number) => {
+      if (!state.clock.advance(delta)) return;
+      worldAt(state.graph, state.clock.rendered, state.frame.current);
+      onDateChange?.(state.clock.rendered);
+    },
+    [state, onDateChange],
+  );
+
   const details = useMemo(
     () => (pick === null ? null : describe(state, pick)),
     [pick, state],
@@ -174,15 +203,16 @@ function SolidCity({
 
   return (
     <div className={className} style={{ position: "relative" }}>
-      <CityCanvas
-        model={state.model}
-        frame={state.frame}
-        mode={mode}
-        onModeChange={setMode}
-        onPick={setPick}
-      >
-        <ClockDriver state={state} onDateChange={onDateChange} />
-      </CityCanvas>
+      <Suspense fallback={<FlatCity className={undefined} state={state} onDateChange={onDateChange} />}>
+        <CityCanvas
+          model={state.model}
+          frame={state.frame}
+          mode={mode}
+          onModeChange={setMode}
+          onPick={setPick}
+          onFrame={advance}
+        />
+      </Suspense>
 
       {details !== null && <Tooltip details={details} />}
 
@@ -271,30 +301,6 @@ function Tooltip({ details }: { readonly details: PickDetails }): JSX.Element {
       )}
     </div>
   );
-}
-
-/**
- * Advances the clock and recomputes the world, inside the render loop.
- *
- * It writes into the same buffer every frame and never sets React state, because
- * re-rendering a component tree sixty times a second to move some numbers is the slow way
- * of doing exactly the same work.
- */
-function ClockDriver({
-  state,
-  onDateChange,
-}: {
-  readonly state: Ready;
-  readonly onDateChange: ((at: number) => void) | undefined;
-}): null {
-  useFrame((_, delta) => {
-    if (!state.clock.advance(Math.min(delta, 0.1))) return;
-
-    worldAt(state.graph, state.clock.rendered, state.frame.current);
-    onDateChange?.(state.clock.rendered);
-  });
-
-  return null;
 }
 
 /** The flat renderer, for no WebGL - and it was built first, so it is not an apology. */

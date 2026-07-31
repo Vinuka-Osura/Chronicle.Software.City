@@ -23,6 +23,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# npm pack output. Built on demand to verify the package installs; never committed.
+*.tgz
+
 # Test and tooling caches
 coverage/
 .vite/
