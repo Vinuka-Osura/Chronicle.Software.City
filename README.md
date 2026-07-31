@@ -15,8 +15,8 @@ is what makes it a product rather than a page.
 
 ## Where this is
 
-**Phase 5.** Orbit the skyline, keep zooming and you end up walking the streets, and point
-at anything to find out what it is. `npm run dev`.
+**Phase 6.** Buildings go up under scaffolding with a crane beside them, retired ones
+weather and go dark, and the whole thing steps itself down on a weak device. `npm run dev`.
 
 Build order and what "done" means for each step: [docs/phases.md](docs/phases.md).
 Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
@@ -29,8 +29,8 @@ Architecture and the reasoning behind it: [docs/design.md](docs/design.md).
 | 3 | Flat renderer and the timeline scrubber | **done** |
 | 4 | The city in three dimensions | **done** |
 | 5 | Moving through it — street mode, tooltips | **done** |
-| 6 | Time made visible — construction, playback, quality tiers | next |
-| 7 | The package and the demo | |
+| 6 | Time made visible — construction, weathering, quality tiers | **done** |
+| 7 | The package and the demo | next |
 | 8 | Into the portfolio | |
 
 ## The shape

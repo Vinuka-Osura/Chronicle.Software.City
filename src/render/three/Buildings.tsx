@@ -1,6 +1,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type JSX, type RefObject } from "react";
 import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { Color, DynamicDrawUsage, type InstancedMesh, Matrix4, Object3D } from "three";
+import {
+  Color,
+  DynamicDrawUsage,
+  type InstancedBufferAttribute,
+  type InstancedMesh,
+  Matrix4,
+  Object3D,
+} from "three";
 import { ItemPhase } from "../frame";
 import type { CityFrame, CityModel } from "../frame";
 import { buildingBox, districtHue } from "./city-geometry";
@@ -39,6 +46,8 @@ export function Buildings({
   onPick,
 }: BuildingsProps): JSX.Element | null {
   const mesh = useRef<InstancedMesh>(null);
+  const decayAttribute = useRef<InstancedBufferAttribute>(null);
+  const lastAt = useRef(Number.NaN);
 
   /**
    * The instance slot for each item, fixed for the session.
@@ -58,6 +67,15 @@ export function Buildings({
     () => (speculative ? null : createBuildingMaterial({ windows })),
     [speculative, windows],
   );
+
+  /**
+   * Per-instance weathering, as an attribute rather than by rewriting instance colours.
+   *
+   * Colour is written once and never again; decay changes with the date. Keeping them
+   * apart means a retired building greys in the shader without the CPU touching the colour
+   * buffer, and without a second material for "retired".
+   */
+  const decay = useMemo(() => new Float32Array(items.length), [items.length]);
 
   useEffect(
     () => () => {
@@ -94,6 +112,12 @@ export function Buildings({
     const current = frame.current;
     if (instanced === null) return;
 
+    // Scrubbing between two instants where nothing crosses a lifecycle boundary must cost
+    // the GPU nothing. The clock only advances the date when something actually moved, so
+    // an unchanged date means an unchanged city.
+    if (current.at === lastAt.current) return;
+    lastAt.current = current.at;
+
     for (const [slot, item] of items.entries()) {
       const plot = model.plots.get(item.id);
       const phase = current.phase[item.index] ?? ItemPhase.Absent;
@@ -102,8 +126,11 @@ export function Buildings({
         // Collapsed rather than removed: the instance keeps its slot, so nothing has to be
         // reallocated and `instanceId` still means what it meant.
         instanced.setMatrixAt(slot, hidden);
+        decay[slot] = 0;
         continue;
       }
+
+      decay[slot] = current.decay[item.index] ?? 0;
 
       const storeys = speculative ? 1 : (current.storeys[item.index] ?? 0);
       const box = buildingBox(item, plot, storeys);
@@ -115,6 +142,7 @@ export function Buildings({
     }
 
     instanced.instanceMatrix.needsUpdate = true;
+    if (decayAttribute.current !== null) decayAttribute.current.needsUpdate = true;
     // Raycasting an InstancedMesh tests this first, so a stale sphere is a building that is
     // plainly there and cannot be pointed at.
     instanced.computeBoundingSphere();
@@ -150,7 +178,15 @@ export function Buildings({
         onPick?.(null);
       }}
     >
-      <boxGeometry args={[1, 1, 1]} />
+      <boxGeometry args={[1, 1, 1]}>
+        {material !== null && (
+          <instancedBufferAttribute
+            ref={decayAttribute}
+            attach="attributes-aDecay"
+            args={[decay, 1]}
+          />
+        )}
+      </boxGeometry>
       {material === null ? (
         // Never solid. A goal must not be mistakable for an achievement from any angle, in
         // any lighting, or by anyone who cannot tell the two colours apart.

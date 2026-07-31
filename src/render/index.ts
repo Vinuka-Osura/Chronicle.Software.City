@@ -27,6 +27,8 @@ export {
 } from "./three/navigation";
 export type { Ground2D, Obstacle } from "./three/navigation";
 export { createBuildingMaterial } from "./three/buildingMaterial";
+export { chooseQuality, detectQuality, readDeviceHints, settingsFor } from "./three/quality";
+export type { DeviceHints, QualitySettings, QualityTier } from "./three/quality";
 export {
   boundsCircle,
   buildingBox,

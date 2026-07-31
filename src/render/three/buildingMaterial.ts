@@ -41,14 +41,17 @@ export function createBuildingMaterial(
       .replace(
         "#include <common>",
         `#include <common>
+         attribute float aDecay;
          varying vec3 vLocalPosition;
          varying vec3 vWorldScale;
-         varying float vSideness;`,
+         varying float vSideness;
+         varying float vDecay;`,
       )
       .replace(
         "#include <begin_vertex>",
         `#include <begin_vertex>
          vLocalPosition = position;
+         vDecay = aDecay;
          // Each column of the instance matrix is an axis scaled by that axis's scale, so
          // its length is the scale. This is how the shader knows how tall the building is
          // without being told separately.
@@ -69,6 +72,7 @@ export function createBuildingMaterial(
          varying vec3 vLocalPosition;
          varying vec3 vWorldScale;
          varying float vSideness;
+         varying float vDecay;
 
          float hash21(vec2 p) {
            p = fract(p * vec2(123.34, 456.21));
@@ -112,8 +116,15 @@ export function createBuildingMaterial(
              float insetX = step(0.25, fract(column)) * (1.0 - step(0.75, fract(column)));
              float pane = isWindow * insetY * insetX;
 
-             totalEmissiveRadiance += vec3(1.0, 0.86, 0.62) * pane * 0.55;
+             // Unlit as it weathers. A retired capability is not demolished - it is
+             // still standing, and nobody is in it.
+             totalEmissiveRadiance += vec3(1.0, 0.86, 0.62) * pane * 0.55 * (1.0 - vDecay);
            }
+
+           // Retired is not deleted. Colour drains toward grey and the surface darkens,
+           // which reads as weathering rather than as removal - the building happened.
+           float grey = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(grey * 0.74), vDecay * 0.88);
          }`,
       );
   };

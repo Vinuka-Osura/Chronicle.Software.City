@@ -5,6 +5,7 @@ import { Vector3 } from "three";
 import type { CityBounds } from "../frame";
 import { boundsCircle, cameraFrame, maxPolarAngle } from "./city-geometry";
 import { StreetExitDistance } from "./navigation";
+import type { QualitySettings } from "./quality";
 
 /**
  * Light, sky and camera.
@@ -19,7 +20,13 @@ import { StreetExitDistance } from "./navigation";
  * is a city that renders wrong for reasons nobody can see.
  */
 
-export function SceneLighting({ bounds }: { readonly bounds: CityBounds }): JSX.Element {
+export function SceneLighting({
+  bounds,
+  settings,
+}: {
+  readonly bounds: CityBounds;
+  readonly settings: QualitySettings;
+}): JSX.Element {
   const { centreX, centreZ, radius } = useMemo(() => boundsCircle(bounds), [bounds]);
 
   // The shadow camera is orthographic and has to contain the city. Too small and shadows
@@ -42,8 +49,8 @@ export function SceneLighting({ bounds }: { readonly bounds: CityBounds }): JSX.
       <directionalLight
         position={[centreX + extent * 0.7, extent * 1.1, centreZ + extent * 0.5]}
         intensity={2.4}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
+        castShadow={settings.shadows}
+        shadow-mapSize={[settings.shadowMapSize, settings.shadowMapSize]}
         shadow-bias={-0.0006}
         shadow-normalBias={0.02}
       >
